@@ -29,11 +29,16 @@ jobs:
       - name: Run daily agent
         run: python -m agent.daily
 
+      - name: Sync data to /docs/data for GitHub Pages
+        run: |
+          mkdir -p docs/data
+          cp state/portfolio.json state/history.csv state/learning.json docs/data/
+
       - name: Commit updates
         run: |
           git config user.name "apex-bot"
           git config user.email "apex-bot@users.noreply.github.com"
-          git add state/ journal/ README.md
+          git add state/ journal/ docs/data/ README.md
           if git diff --staged --quiet; then
             echo "no changes"
           else

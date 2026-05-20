@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>APEX Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-mark">A</div>
+      <div class="brand-text">
+        <div class="brand-name">APEX</div>
+        <div class="brand-sub">portfolio agent</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#performance">Performance</a>
+      <a href="#positions">Positions</a>
+      <a href="#risk">Risk</a>
+      <a href="#journal">Journal</a>
+      <a href="#thesis">Thesis</a>
+    </nav>
+  </header>
+
+  <section class="hero" id="performance">
+    <div class="hero-left">
+      <div class="hero-eyebrow">SVP Product / GeniusIQ inspired build</div>
+      <h1>An autonomous paper portfolio that mirrors <span class="hl">Situational Awareness Capital</span>.</h1>
+      <p class="hero-lede">
+        $1,000 starting capital. Positions inferred from the May 18 2026 13F and
+        the situational-awareness.ai essays. A GitHub Action marks the book to
+        market each weekday at 4:30pm ET, writes a journal entry, and adjusts a
+        per-ticker conviction bias from the day's outcome.
+      </p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-value" id="stat-total">$--</div>
+        <div class="stat-label">Total Value</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-pnl">$--</div>
+        <div class="stat-label">P&amp;L since inception</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-pnl-pct">--%</div>
+        <div class="stat-label">Return</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-day">Day --</div>
+        <div class="stat-label">Days live</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band chart-band">
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <div>
+        <h2>Equity curve</h2>
+        <p class="section-sub">Total portfolio value at each daily mark, vs the $1,000 starting line.</p>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <svg id="equity-chart" viewBox="0 0 800 280" preserveAspectRatio="none"></svg>
+      <div class="chart-foot">
+        <span><span class="legend-dot lime"></span> APEX</span>
+        <span><span class="legend-dot dim"></span> $1,000 baseline</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="positions">
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <div>
+        <h2>Positions</h2>
+        <p class="section-sub">13 names sized by thesis conviction. P&amp;L since inception, weight as of last mark.</p>
+      </div>
+    </div>
+    <div class="positions-grid" id="positions-grid"></div>
+  </section>
+
+  <section class="band" id="risk">
+    <div class="section-head">
+      <div class="section-num">03</div>
+      <div>
+        <h2>Risk snapshot</h2>
+        <p class="section-sub">Sector concentration and flags from the most recent run.</p>
+      </div>
+    </div>
+    <div class="risk-wrap">
+      <div class="risk-status-card">
+        <div class="risk-status" id="risk-status">--</div>
+        <div class="risk-label">Veto status</div>
+      </div>
+      <div class="sector-list" id="sector-list"></div>
+      <div class="flag-list" id="flag-list"></div>
+    </div>
+  </section>
+
+  <section class="band" id="journal">
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <div>
+        <h2>Daily journal</h2>
+        <p class="section-sub">One entry per market close. Click any node to open the markdown source on GitHub.</p>
+      </div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <section class="band thesis" id="thesis">
+    <div class="section-head">
+      <div class="section-num">05</div>
+      <div>
+        <h2>Thesis priors</h2>
+        <p class="section-sub">Static priors the planner reads on every run. Updated when Aschenbrenner publishes or a new 13F drops.</p>
+      </div>
+    </div>
+    <div class="thesis-grid">
+      <div class="thesis-card">
+        <div class="thesis-num">01</div>
+        <h3>Transformative AI 2025 to 2027</h3>
+        <p>AGI-level systems by roughly 2027 per the situational-awareness.ai essays. Compute and energy are the binding constraints.</p>
+      </div>
+      <div class="thesis-card">
+        <div class="thesis-num">02</div>
+        <h3>Power buildout is the trade</h3>
+        <p>US generation must expand "tens of percent" before 2030. Nuclear, gas turbines, and fuel cells are the cleanest expressions.</p>
+      </div>
+      <div class="thesis-card">
+        <div class="thesis-num">03</div>
+        <h3>Semis hedged, not shorted</h3>
+        <p>The Q1 2026 13F shows $7.7B notional in semi puts. Direction is ambiguous on 13F. We keep small longs and let the fund signal carry the risk.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-line">CONFIDENTIAL: paper portfolio only. No real broker, no real money. Not investment advice.</div>
+    <div class="footer-meta">
+      <a href="https://github.com/maisymylod/apex-portfolio">github.com/maisymylod/apex-portfolio</a>
+      <span id="last-run">last run --</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

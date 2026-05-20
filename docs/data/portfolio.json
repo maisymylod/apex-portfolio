@@ -1,0 +1,99 @@
+{
+  "starting_capital": 1000.0,
+  "cash": 159.9827702933311,
+  "positions": {
+    "BE": {
+      "shares": 0.4183,
+      "cost_basis": 286.8800048828125,
+      "thesis": "Bloom Energy. Fund's largest equity long ($879M).",
+      "conviction": "HIGH",
+      "bought_at": "2026-05-20T18:39:05.956165+00:00"
+    },
+    "CEG": {
+      "shares": 0.357,
+      "cost_basis": 280.1400146484375,
+      "thesis": "Constellation. Nuclear baseload for AI datacenters.",
+      "conviction": "HIGH",
+      "bought_at": "2026-05-20T18:39:05.956179+00:00"
+    },
+    "MSFT": {
+      "shares": 0.2378,
+      "cost_basis": 420.4750061035156,
+      "thesis": "OpenAI exposure plus Azure hyperscaler.",
+      "conviction": "HIGH",
+      "bought_at": "2026-05-20T18:39:05.956184+00:00"
+    },
+    "VST": {
+      "shares": 0.5566,
+      "cost_basis": 143.72999572753906,
+      "thesis": "Vistra. Gas plus nuclear, AI datacenter PPAs.",
+      "conviction": "HIGH",
+      "bought_at": "2026-05-20T18:39:05.956187+00:00"
+    },
+    "GEV": {
+      "shares": 0.0775,
+      "cost_basis": 1032.6600341796875,
+      "thesis": "GE Vernova. Turbines for AI datacenter buildout.",
+      "conviction": "HIGH",
+      "bought_at": "2026-05-20T18:39:05.956190+00:00"
+    },
+    "GOOG": {
+      "shares": 0.2085,
+      "cost_basis": 383.7300109863281,
+      "thesis": "DeepMind plus internal TPU compute.",
+      "conviction": "MED",
+      "bought_at": "2026-05-20T18:39:05.956193+00:00"
+    },
+    "NVDA": {
+      "shares": 0.2232,
+      "cost_basis": 223.9949951171875,
+      "thesis": "Compute core, but fund hedged with $1.57B puts.",
+      "conviction": "MED",
+      "bought_at": "2026-05-20T18:39:05.956196+00:00"
+    },
+    "META": {
+      "shares": 0.0825,
+      "cost_basis": 605.75,
+      "thesis": "Llama stack, ad business funds capex.",
+      "conviction": "MED",
+      "bought_at": "2026-05-20T18:39:05.956199+00:00"
+    },
+    "CLSK": {
+      "shares": 2.5181,
+      "cost_basis": 15.885000228881836,
+      "thesis": "CleanSpark. HPC-pivot miner (fund ramped 7x in Q1).",
+      "conviction": "MED",
+      "bought_at": "2026-05-20T18:39:05.956202+00:00"
+    },
+    "RIOT": {
+      "shares": 1.6715,
+      "cost_basis": 23.93000030517578,
+      "thesis": "Riot. HPC-pivot miner (fund 2x'd in Q1).",
+      "conviction": "MED",
+      "bought_at": "2026-05-20T18:39:05.956205+00:00"
+    },
+    "TSM": {
+      "shares": 0.0993,
+      "cost_basis": 402.7300109863281,
+      "thesis": "Foundry chokepoint.",
+      "conviction": "MED",
+      "bought_at": "2026-05-20T18:39:05.956208+00:00"
+    },
+    "AVGO": {
+      "shares": 0.0717,
+      "cost_basis": 418.6499938964844,
+      "thesis": "Custom AI silicon for hyperscalers.",
+      "conviction": "MED",
+      "bought_at": "2026-05-20T18:39:05.956211+00:00"
+    },
+    "BITF": {
+      "shares": 7.1259,
+      "cost_basis": 4.210000038146973,
+      "thesis": "Bitfarms. HPC-pivot miner (fund 3x'd in Q1).",
+      "conviction": "MED",
+      "bought_at": "2026-05-20T18:39:05.956214+00:00"
+    }
+  },
+  "inception_date": "2026-05-20",
+  "last_run": "2026-05-20T18:40:09.343200+00:00"
+}
