@@ -5,6 +5,8 @@ Falls back to last close if intraday is unavailable. Caches in-process only.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+
+import pandas as pd
 import yfinance as yf
 
 
@@ -42,3 +44,37 @@ def fetch_close_prices(tickers: list[str]) -> dict[str, float]:
         except Exception as e:
             print(f"[prices] failed to fetch {t}: {e}")
     return out
+
+
+def fetch_history(tickers: list[str], days: int = 90) -> pd.DataFrame:
+    """Return a DataFrame of daily adjusted-close prices for the last `days` calendar days.
+
+    Columns are tickers, index is trading date. Missing tickers are dropped.
+    Used by quant/stats.py to estimate the rolling covariance matrix.
+    """
+    end = datetime.utcnow() + timedelta(days=1)
+    start = end - timedelta(days=int(days * 1.6) + 10)  # buffer for weekends/holidays
+    data = yf.download(
+        tickers=" ".join(tickers),
+        start=start.strftime("%Y-%m-%d"),
+        end=end.strftime("%Y-%m-%d"),
+        progress=False,
+        auto_adjust=True,
+        group_by="ticker",
+        threads=False,
+    )
+    frames = {}
+    for t in tickers:
+        try:
+            if len(tickers) > 1:
+                series = data[t]["Close"].dropna()
+            else:
+                series = data["Close"].dropna()
+            if len(series) >= 2:
+                frames[t] = series
+        except Exception:
+            pass
+    if not frames:
+        return pd.DataFrame()
+    df = pd.concat(frames, axis=1).sort_index().ffill().dropna(how="all")
+    return df.tail(days)
