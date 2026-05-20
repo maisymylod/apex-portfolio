@@ -1,3 +1,4 @@
-date_utc,total_value,cash,holdings_value,pnl_usd,pnl_pct
+date_utc,total_value,cash,holdings_value,pnl_usd,pnl_pct,var_95_usd,cvar_95_usd,sim_sharpe,p_ruin,bl_run
 2026-05-20,999.98,159.98,840.00,-0.02,-0.00
 2026-05-20,999.86,159.98,839.88,-0.14,-0.01
+2026-05-20,996.45,159.98,836.46,-3.55,-0.36,32.02,39.78,0.652,0.4131,1
