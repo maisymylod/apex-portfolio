@@ -1,0 +1,39 @@
+name: daily-run
+
+on:
+  schedule:
+    # 4:30pm EDT = 20:30 UTC, weekdays (Mon-Fri)
+    - cron: "30 20 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run daily agent
+        run: python -m agent.daily
+
+      - name: Commit updates
+        run: |
+          git config user.name "apex-bot"
+          git config user.email "apex-bot@users.noreply.github.com"
+          git add state/ journal/ README.md
+          if git diff --staged --quiet; then
+            echo "no changes"
+          else
+            git commit -m "daily run $(date -u +%Y-%m-%d)"
+            git push
+          fi
