@@ -12,22 +12,22 @@ entry to `journal/`, and refreshes the live P&L table below.
 ## Live P&L
 
 <!-- LIVE_PNL_START -->
-**As of 2026-05-20 (UTC)** — Day 1
+**As of 2026-05-20 (UTC)** — Day 2
 
 | Total value | P&L | P&L % | Cash | Holdings |
 |-------------|-----|-------|------|----------|
-| $999.98 | $-0.02 (DOWN) | -0.00% | $159.98 | $840.00 |
+| $999.86 | $-0.14 (DOWN) | -0.01% | $159.98 | $839.88 |
 
 ### Top holdings
 
 | Ticker | Weight | P&L % |
 |--------|--------|-------|
 | BE | 12.0% | -0.02% |
-| CEG | 10.0% | +0.00% |
-| MSFT | 10.0% | +0.00% |
-| GEV | 8.0% | +0.00% |
-| GOOG | 8.0% | -0.01% |
-| VST | 8.0% | +0.00% |
+| MSFT | 10.0% | -0.02% |
+| CEG | 10.0% | -0.06% |
+| GOOG | 8.0% | +0.01% |
+| VST | 8.0% | -0.04% |
+| GEV | 8.0% | -0.10% |
 
 <!-- LIVE_PNL_END -->
 
