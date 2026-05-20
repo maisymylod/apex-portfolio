@@ -24,6 +24,7 @@
       <a href="#risk">Risk</a>
       <a href="#journal">Journal</a>
       <a href="#thesis">Thesis</a>
+      <a href="#quant">Quant</a>
     </nav>
   </header>
 
@@ -138,6 +139,52 @@
         <div class="thesis-num">03</div>
         <h3>Semis hedged, not shorted</h3>
         <p>The Q1 2026 13F shows $7.7B notional in semi puts. Direction is ambiguous on 13F. We keep small longs and let the fund signal carry the risk.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="quant">
+    <div class="section-head">
+      <div class="section-num">06</div>
+      <div>
+        <h2>Quant analytics</h2>
+        <p class="section-sub">Black-Litterman target weights, Monte Carlo risk (10,000 paths × 252 days), and the protective-put overlay computed on every run.</p>
+      </div>
+    </div>
+
+    <div class="quant-wrap">
+      <div class="quant-card bl-card">
+        <div class="quant-card-head">
+          <h3>BL target vs current</h3>
+          <span class="quant-meta" id="bl-meta">--</span>
+        </div>
+        <div class="bl-rows" id="bl-rows"></div>
+      </div>
+
+      <div class="quant-card mc-card">
+        <div class="quant-card-head">
+          <h3>Monte Carlo risk</h3>
+          <span class="quant-meta" id="mc-meta">--</span>
+        </div>
+        <div class="mc-grid" id="mc-grid"></div>
+        <div class="mc-veto" id="mc-veto"></div>
+      </div>
+
+      <div class="quant-card opt-card">
+        <div class="quant-card-head">
+          <h3>Options overlay</h3>
+          <span class="quant-meta" id="opt-status">--</span>
+        </div>
+        <div class="opt-body" id="opt-body"></div>
+      </div>
+    </div>
+
+    <div class="quant-chart-wrap">
+      <h3>VaR &amp; Sharpe history</h3>
+      <svg id="quant-chart" viewBox="0 0 800 240" preserveAspectRatio="none"></svg>
+      <div class="chart-foot">
+        <span><span class="legend-dot lime"></span> VaR 95% (1d)</span>
+        <span><span class="legend-dot blue"></span> Sim Sharpe</span>
       </div>
     </div>
   </section>

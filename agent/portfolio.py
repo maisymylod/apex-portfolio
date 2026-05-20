@@ -84,18 +84,42 @@ def mark_to_market(state: dict, prices: dict[str, float]) -> dict:
     }
 
 
-def append_history(snapshot: dict) -> None:
+HISTORY_HEADER = [
+    "date_utc", "total_value", "cash", "holdings_value", "pnl_usd", "pnl_pct",
+    "var_95_usd", "cvar_95_usd", "sim_sharpe", "p_ruin", "bl_run",
+]
+
+
+def append_history(snapshot: dict, mc_report: dict | None = None, bl_run: bool = False) -> None:
+    """Append one row to state/history.csv. New columns are filled when
+    available; legacy rows just have empty cells in the new columns.
+
+    Migrates an old (6-column) header to the new (11-column) header in place
+    if needed, without rewriting existing data rows.
+    """
     STATE_DIR.mkdir(parents=True, exist_ok=True)
-    new_file = not HISTORY_PATH.exists()
+    if HISTORY_PATH.exists():
+        existing = HISTORY_PATH.read_text().splitlines()
+        if existing and existing[0].split(",") != HISTORY_HEADER:
+            existing[0] = ",".join(HISTORY_HEADER)
+            HISTORY_PATH.write_text("\n".join(existing) + "\n")
+    else:
+        with HISTORY_PATH.open("w", newline="") as f:
+            csv.writer(f).writerow(HISTORY_HEADER)
+
+    var_v = f"{mc_report['var_1d_usd']:.2f}" if mc_report else ""
+    cvar_v = f"{mc_report['cvar_1d_usd']:.2f}" if mc_report else ""
+    sharpe_v = f"{mc_report['sim_sharpe']:.3f}" if mc_report else ""
+    pruin_v = f"{mc_report['p_ruin']:.4f}" if mc_report else ""
+    bl_v = "1" if bl_run else "0"
+
     with HISTORY_PATH.open("a", newline="") as f:
-        w = csv.writer(f)
-        if new_file:
-            w.writerow(["date_utc", "total_value", "cash", "holdings_value", "pnl_usd", "pnl_pct"])
-        w.writerow([
+        csv.writer(f).writerow([
             snapshot["as_of"][:10],
             f"{snapshot['total_value']:.2f}",
             f"{snapshot['cash']:.2f}",
             f"{snapshot['holdings_value']:.2f}",
             f"{snapshot['total_pnl_usd']:.2f}",
             f"{snapshot['total_pnl_pct']:.2f}",
+            var_v, cvar_v, sharpe_v, pruin_v, bl_v,
         ])
