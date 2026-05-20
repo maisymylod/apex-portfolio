@@ -12,11 +12,11 @@ entry to `journal/`, and refreshes the live P&L table below.
 ## Live P&L
 
 <!-- LIVE_PNL_START -->
-**As of 2026-05-20 (UTC)** — Day 3
+**As of 2026-05-20 (UTC)** — Day 4
 
 | Total value | P&L | P&L % | Cash | Holdings |
 |-------------|-----|-------|------|----------|
-| $996.45 | $-3.55 (DOWN) | -0.36% | $159.98 | $836.46 |
+| $996.39 | $-3.61 (DOWN) | -0.36% | $159.98 | $836.40 |
 
 ### Top holdings
 
@@ -26,8 +26,8 @@ entry to `journal/`, and refreshes the live P&L table below.
 | CEG | 10.1% | +0.40% |
 | MSFT | 10.0% | +0.14% |
 | GOOG | 8.1% | +0.30% |
-| VST | 8.0% | +0.22% |
-| GEV | 8.0% | -0.75% |
+| VST | 8.0% | +0.19% |
+| GEV | 8.0% | -0.79% |
 
 <!-- LIVE_PNL_END -->
 
