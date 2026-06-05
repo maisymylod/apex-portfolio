@@ -245,6 +245,58 @@ def compute_benchmark_block(state: dict, snapshot: dict, history, days: int) -> 
         return None
 
 
+def compute_risk_decomp_block(snapshot: dict, quant: dict | None) -> dict | None:
+    """Parametric per-position risk decomposition off the BL covariance.
+
+    Same sleeve weighting as mc_risk_report (MV / gross holdings over names
+    present in the history frame). Closed-form, deterministic, fail-soft.
+    """
+    try:
+        if not quant or quant.get("history") is None:
+            return None
+        import pandas as pd
+
+        from quant import stats as qstats
+
+        history = quant["history"]
+        positions = snapshot["positions"]
+        tickers = [p["ticker"] for p in positions if p["ticker"] in history.columns]
+        excluded = sorted(p["ticker"] for p in positions if p["ticker"] not in history.columns)
+        if len(tickers) < 2:
+            return None
+        cov = qstats.rolling_cov(history[tickers], window=60)
+        mv = {p["ticker"]: p["market_value"] for p in positions}
+        sleeve = sum(mv[t] for t in tickers)
+        if sleeve <= 0:
+            return None
+        weights = pd.Series({t: mv[t] / sleeve for t in tickers})
+        out = analytics.risk_decomposition(weights, cov, sleeve)
+        out["excluded"] = excluded
+        out["sleeve_value_usd"] = sleeve
+        out["asof"] = snapshot["as_of"]
+        return out
+    except Exception:
+        traceback.print_exc()
+        print("[risk-decomp] risk decomposition failed, continuing")
+        return None
+
+
+def compute_stress_block(snapshot: dict) -> dict | None:
+    """Deterministic thesis-linked scenario shocks on the current book."""
+    try:
+        rows = analytics.stress_tests(
+            snapshot["positions"], snapshot["cash"], snapshot["total_value"],
+            risk.SECTOR_MAP,
+        )
+        if not rows:
+            return None
+        return {"scenarios": rows, "asof": snapshot["as_of"]}
+    except Exception:
+        traceback.print_exc()
+        print("[stress] stress-test block failed, continuing")
+        return None
+
+
 def compute_attribution_block(state: dict, snapshot: dict, history, benchmark: dict | None) -> dict | None:
     """Per-position/sector contribution-to-return + explicit cash drag.
 
@@ -340,6 +392,8 @@ def write_journal(
     realized: dict | None = None,
     benchmark: dict | None = None,
     attribution: dict | None = None,
+    risk_decomp: dict | None = None,
+    stress: dict | None = None,
     data_quality: dict | None = None,
 ) -> Path:
     JOURNAL_DIR.mkdir(parents=True, exist_ok=True)
@@ -571,6 +625,54 @@ def write_journal(
             for fl in mc_report["veto_flags"]:
                 lines.append(f"- {fl}")
 
+    if risk_decomp and risk_decomp.get("positions"):
+        lines.append("")
+        lines.append("## Risk decomposition (parametric, invested sleeve)")
+        lines.append(
+            f"_Gaussian 1d 95% VaR on the ${risk_decomp['sleeve_value_usd']:.2f} sleeve "
+            f"(closed-form complement to the simulated MC VaR above). Sleeve vol "
+            f"{risk_decomp['portfolio_vol_ann_pct']:.1f}% ann; diversification ratio "
+            f"{_fmt(risk_decomp['diversification_ratio'], '{:.2f}')}; HHI "
+            f"{_fmt(risk_decomp['hhi'], '{:.3f}')} → effective names "
+            f"{_fmt(risk_decomp['effective_names'], '{:.1f}')}._"
+        )
+        if risk_decomp.get("excluded"):
+            lines.append(
+                f"_Excluded (no price history): {', '.join(risk_decomp['excluded'])}._"
+            )
+        lines.append("")
+        lines.append("| Ticker | Weight | Vol (ann) | Component VaR (1d) | Risk contrib | Marginal VaR /+1pp |")
+        lines.append("|--------|--------|-----------|--------------------|--------------|--------------------|")
+        for r in risk_decomp["positions"]:
+            lines.append(
+                f"| {r['ticker']} | {r['weight_pct']:.1f}% | {r['vol_ann_pct']:.1f}% | "
+                f"${r['component_var_1d_usd']:.2f} | {r['risk_contribution_pct']:.1f}% | "
+                f"${r['marginal_var_1d_usd_per_pp']:+.2f} |"
+            )
+        lines.append(
+            f"| **Total** | | | **${risk_decomp['var_1d_usd']:.2f}** | 100.0% | |"
+        )
+
+    if stress:
+        lines.append("")
+        lines.append("## Stress tests (deterministic thesis scenarios)")
+        lines.append(
+            "_Instant shocks on current positions; cash unshocked; SPY column is the "
+            "scenario's assumed benchmark move. Active = book minus SPY, in pp._"
+        )
+        lines.append("")
+        lines.append("| Scenario | Book Δ | Book Δ% | SPY Δ% | Active |")
+        lines.append("|----------|--------|---------|--------|--------|")
+        for sc in stress["scenarios"]:
+            lines.append(
+                f"| {sc['name']} | ${sc['book_impact_usd']:+.2f} | "
+                f"{sc['book_return_pct']:+.2f}% | {sc['bench_return_pct']:+.2f}% | "
+                f"{sc['active_pct']:+.2f}pp |"
+            )
+        lines.append("")
+        for sc in stress["scenarios"]:
+            lines.append(f"- **{sc['name']}** — {sc['description']}")
+
     if options:
         lines.append("")
         lines.append("## Options overlay (paper only)")
@@ -681,6 +783,8 @@ def main() -> int:
     realized = compute_realized_block(state, snapshot)
     benchmark = compute_benchmark_block(state, snapshot, quant_history, hist_days)
     attribution = compute_attribution_block(state, snapshot, quant_history, benchmark)
+    risk_decomp = compute_risk_decomp_block(snapshot, quant)
+    stress = compute_stress_block(snapshot)
     data_quality = compute_data_quality_block(state, px, quant_history, snapshot)
     if realized:
         state["realized"] = realized
@@ -688,6 +792,10 @@ def main() -> int:
         state["benchmark"] = benchmark
     if attribution:
         state["attribution"] = attribution
+    if risk_decomp:
+        state["risk_decomposition"] = risk_decomp
+    if stress:
+        state["stress_tests"] = stress
     if data_quality:
         state["data_quality"] = data_quality
 
@@ -708,7 +816,7 @@ def main() -> int:
     write_journal(
         snapshot, risk_rep, learning, quant=quant, mc_report=mc_report, options=options,
         realized=realized, benchmark=benchmark, attribution=attribution,
-        data_quality=data_quality,
+        risk_decomp=risk_decomp, stress=stress, data_quality=data_quality,
     )
 
     history_rows = history.read_text().strip().splitlines() if history.exists() else []

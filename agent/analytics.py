@@ -20,6 +20,7 @@ from bisect import bisect_right
 from datetime import date
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 TRADING_DAYS = 252
@@ -365,6 +366,151 @@ def cash_drag_metrics(snapshot: dict, prior_row: dict | None = None) -> dict:
                 (snapshot["holdings_value"] / prior_holdings - 1.0) * 100
             )
             out["day_drag_pct"] = out["book_day_return_pct"] - out["sleeve_day_return_pct"]
+    return out
+
+
+def risk_decomposition(
+    weights: pd.Series,
+    cov_annual: pd.DataFrame,
+    sleeve_value_usd: float,
+    var_alpha: float = 0.05,
+) -> dict:
+    """Parametric (Gaussian) risk decomposition of the invested sleeve.
+
+    Euler decomposition: component VaR_i = z * w_i * (Sigma_d w)_i / sigma_d
+    scaled by sleeve value, so components sum exactly to the total parametric
+    1d VaR. This is the closed-form complement to the simulated MC VaR — keep
+    the two labelled separately. Also reports diversification ratio
+    (weighted-average vol / portfolio vol), HHI over sleeve weights, and the
+    effective number of names (1/HHI). Deterministic, no RNG.
+    """
+    from scipy.stats import norm
+
+    tickers = list(cov_annual.columns)
+    w = weights.reindex(tickers).fillna(0.0).to_numpy(dtype=float)
+    cov_d = cov_annual.to_numpy(dtype=float) / TRADING_DAYS
+    var_p_d = float(w @ cov_d @ w)
+    if var_p_d <= 0 or sleeve_value_usd <= 0:
+        return {"positions": [], "portfolio_vol_ann_pct": None, "var_1d_usd": None,
+                "diversification_ratio": None, "hhi": None, "effective_names": None}
+    sigma_d = math.sqrt(var_p_d)
+    z = float(norm.ppf(1.0 - var_alpha))
+    total_var_usd = z * sigma_d * sleeve_value_usd
+
+    mcr = (cov_d @ w) / sigma_d                      # marginal contribution to daily vol
+    component_usd = z * w * mcr * sleeve_value_usd   # Euler: sums to total_var_usd
+    vols_ann = np.sqrt(np.diag(cov_annual.to_numpy(dtype=float)))
+    sigma_ann = sigma_d * math.sqrt(TRADING_DAYS)
+
+    hhi = float(np.sum(w ** 2))
+    rows = []
+    for i, t in enumerate(tickers):
+        rows.append({
+            "ticker": t,
+            "weight_pct": float(w[i]) * 100,
+            "vol_ann_pct": float(vols_ann[i]) * 100,
+            "component_var_1d_usd": float(component_usd[i]),
+            "marginal_var_1d_usd_per_pp": float(z * mcr[i] * sleeve_value_usd * 0.01),
+            "risk_contribution_pct": float(component_usd[i] / total_var_usd * 100),
+        })
+    rows.sort(key=lambda r: -r["risk_contribution_pct"])
+    return {
+        "positions": rows,
+        "portfolio_vol_ann_pct": sigma_ann * 100,
+        "var_1d_usd": total_var_usd,
+        "var_alpha": var_alpha,
+        "diversification_ratio": float(w @ vols_ann) / sigma_ann if sigma_ann > 0 else None,
+        "hhi": hhi,
+        "effective_names": 1.0 / hhi if hhi > 0 else None,
+    }
+
+
+# Deterministic shock scenarios tied to the stated thesis priors (planner.py:
+# power/nuclear buildout, hyperscaler compute, semis hedged, HPC-pivot miners).
+# Fractions are instantaneous price shocks; benchmark_shock is the assumed
+# SPY move under the same scenario. No randomness anywhere.
+STRESS_SCENARIOS = [
+    {
+        "name": "AI capex drawdown",
+        "description": "hyperscalers cut datacenter capex; the whole buildout chain reprices",
+        "sector_shocks": {"semi": -0.30, "hyperscaler": -0.15, "power": -0.25,
+                          "miners": -0.35, "other": -0.10},
+        "benchmark_shock": -0.12,
+    },
+    {
+        "name": "Rate shock +100bp",
+        "description": "long rates jump; duration-heavy power and growth multiples compress",
+        "sector_shocks": {"power": -0.12, "hyperscaler": -0.08, "semi": -0.10,
+                          "miners": -0.18, "other": -0.05},
+        "benchmark_shock": -0.07,
+    },
+    {
+        "name": "Semis export controls",
+        "description": "new China export restrictions hit the GPU supply chain",
+        "sector_shocks": {"semi": -0.25, "hyperscaler": -0.08, "power": -0.05,
+                          "miners": -0.10, "other": -0.03},
+        "ticker_shocks": {"NVDA": -0.35, "TSM": -0.30},
+        "benchmark_shock": -0.05,
+    },
+    {
+        "name": "BTC crash -40%",
+        "description": "bitcoin halves; HPC-pivot miners trade as leveraged BTC despite the pivot",
+        "sector_shocks": {"miners": -0.45},
+        "benchmark_shock": -0.02,
+    },
+    {
+        "name": "Oil/energy spike",
+        "description": "energy shock lifts power prices but squeezes miners and risk appetite",
+        "sector_shocks": {"power": 0.10, "miners": -0.10, "semi": -0.05,
+                          "hyperscaler": -0.05, "other": -0.03},
+        "benchmark_shock": -0.04,
+    },
+    {
+        "name": "AGI acceleration melt-up",
+        "description": "capability jump pulls forward the whole thesis (upside scenario)",
+        "sector_shocks": {"semi": 0.35, "hyperscaler": 0.20, "power": 0.25,
+                          "miners": 0.30, "other": 0.10},
+        "benchmark_shock": 0.10,
+    },
+]
+
+
+def stress_tests(
+    positions: list[dict],
+    cash: float,
+    total_value: float,
+    sector_map: dict[str, str],
+    scenarios: list[dict] | None = None,
+) -> list[dict]:
+    """Apply deterministic scenario shocks to the current book.
+
+    Each position takes its ticker-override shock if present, else its
+    sector shock (default 0). Cash is never shocked. Active = book move
+    minus the scenario's assumed benchmark move, in percentage points.
+    """
+    if not positions or not total_value:
+        return []
+    out = []
+    for sc in (scenarios if scenarios is not None else STRESS_SCENARIOS):
+        sector_shocks = sc.get("sector_shocks", {})
+        ticker_shocks = sc.get("ticker_shocks", {})
+        impact = 0.0
+        for p in positions:
+            shock = ticker_shocks.get(
+                p["ticker"],
+                sector_shocks.get(sector_map.get(p["ticker"], "other"), 0.0),
+            )
+            impact += p["market_value"] * shock
+        book_pct = impact / total_value * 100
+        bench_pct = sc.get("benchmark_shock", 0.0) * 100
+        out.append({
+            "name": sc["name"],
+            "description": sc.get("description", ""),
+            "book_impact_usd": impact,
+            "book_return_pct": book_pct,
+            "bench_return_pct": bench_pct,
+            "active_pct": book_pct - bench_pct,
+        })
     return out
 
 

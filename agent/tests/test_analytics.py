@@ -286,6 +286,104 @@ def test_load_history_rows_by_name(tmp_path):
     assert analytics.load_history_rows(tmp_path / "nope.csv") == []
 
 
+# --------------------------------------------------------- risk decomposition
+
+def test_risk_decomposition_known_values():
+    # two uncorrelated 20%-vol assets, 50/50, $1000 sleeve
+    from scipy.stats import norm
+
+    cov = pd.DataFrame([[0.04, 0.0], [0.0, 0.04]], index=["A", "B"], columns=["A", "B"])
+    w = pd.Series({"A": 0.5, "B": 0.5})
+    out = analytics.risk_decomposition(w, cov, 1000.0)
+
+    sigma_ann = math.sqrt(0.02)  # sqrt(w' cov w)
+    assert out["portfolio_vol_ann_pct"] == pytest.approx(sigma_ann * 100)
+    assert out["diversification_ratio"] == pytest.approx(0.20 / sigma_ann)  # = sqrt(2)
+    assert out["hhi"] == pytest.approx(0.5)
+    assert out["effective_names"] == pytest.approx(2.0)
+
+    z = norm.ppf(0.95)
+    expected_var = z * sigma_ann / math.sqrt(252) * 1000.0
+    assert out["var_1d_usd"] == pytest.approx(expected_var)
+    # symmetric case: equal split, components sum to total
+    contribs = [r["risk_contribution_pct"] for r in out["positions"]]
+    assert contribs == pytest.approx([50.0, 50.0])
+    assert sum(r["component_var_1d_usd"] for r in out["positions"]) == pytest.approx(expected_var)
+
+
+def test_risk_decomposition_concentrated():
+    cov = pd.DataFrame([[0.09, 0.0], [0.0, 0.04]], index=["A", "B"], columns=["A", "B"])
+    out = analytics.risk_decomposition(pd.Series({"A": 1.0, "B": 0.0}), cov, 500.0)
+    assert out["hhi"] == pytest.approx(1.0)
+    assert out["effective_names"] == pytest.approx(1.0)
+    assert out["diversification_ratio"] == pytest.approx(1.0)  # single name: no benefit
+    by = {r["ticker"]: r for r in out["positions"]}
+    assert by["A"]["risk_contribution_pct"] == pytest.approx(100.0)
+    assert by["B"]["risk_contribution_pct"] == pytest.approx(0.0)
+
+
+def test_risk_decomposition_degenerate():
+    cov = pd.DataFrame([[0.0, 0.0], [0.0, 0.0]], index=["A", "B"], columns=["A", "B"])
+    out = analytics.risk_decomposition(pd.Series({"A": 0.5, "B": 0.5}), cov, 1000.0)
+    assert out["positions"] == []
+    assert out["var_1d_usd"] is None
+
+
+# ---------------------------------------------------------------- stress tests
+
+def test_stress_tests_known_values():
+    positions = [
+        {"ticker": "AAA", "market_value": 100.0},
+        {"ticker": "BBB", "market_value": 50.0},
+    ]
+    scenarios = [{
+        "name": "test shock",
+        "description": "x down 10, y down 20",
+        "sector_shocks": {"x": -0.10, "y": -0.20},
+        "benchmark_shock": -0.05,
+    }]
+    rows = analytics.stress_tests(
+        positions, cash=50.0, total_value=200.0,
+        sector_map={"AAA": "x", "BBB": "y"}, scenarios=scenarios,
+    )
+    assert rows[0]["book_impact_usd"] == pytest.approx(-20.0)  # -10 - 10, cash untouched
+    assert rows[0]["book_return_pct"] == pytest.approx(-10.0)
+    assert rows[0]["bench_return_pct"] == pytest.approx(-5.0)
+    assert rows[0]["active_pct"] == pytest.approx(-5.0)
+
+
+def test_stress_tests_ticker_override_beats_sector():
+    positions = [{"ticker": "AAA", "market_value": 100.0}]
+    scenarios = [{
+        "name": "override",
+        "sector_shocks": {"x": -0.10},
+        "ticker_shocks": {"AAA": -0.50},
+        "benchmark_shock": 0.0,
+    }]
+    rows = analytics.stress_tests(positions, 0.0, 100.0, {"AAA": "x"}, scenarios)
+    assert rows[0]["book_impact_usd"] == pytest.approx(-50.0)
+
+
+def test_stress_tests_empty_book():
+    assert analytics.stress_tests([], 100.0, 100.0, {}) == []
+
+
+def test_default_scenarios_are_sane():
+    assert len(analytics.STRESS_SCENARIOS) >= 4
+    names = [s["name"] for s in analytics.STRESS_SCENARIOS]
+    assert len(names) == len(set(names))
+    for sc in analytics.STRESS_SCENARIOS:
+        assert sc["name"] and "benchmark_shock" in sc
+        for shock in list(sc.get("sector_shocks", {}).values()) + list(sc.get("ticker_shocks", {}).values()):
+            assert -0.6 <= shock <= 0.6, f"{sc['name']}: implausible shock {shock}"
+        assert -0.3 <= sc["benchmark_shock"] <= 0.3
+    # at least one upside scenario so the table is not all red
+    assert any(
+        any(v > 0 for v in sc.get("sector_shocks", {}).values())
+        for sc in analytics.STRESS_SCENARIOS
+    )
+
+
 # -------------------------------------------------------------- data quality
 
 def _hist(last_date: str, cols=("SPY", "NVDA")):
