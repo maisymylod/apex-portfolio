@@ -205,7 +205,25 @@ Attribution + cash drag (gap C):
 - Journal gains an Attribution section (positions, sectors, cash drag).
   Zero new network calls; fail-soft block like the others.
 
-## 8. Test/CI baseline
+## 8. Phase 3 addendum (implemented 2026-06-05)
+
+Risk decomposition + thesis stress tests (gaps D, E):
+
+- **portfolio.json new keys** (additive): `risk_decomposition` — parametric
+  Gaussian 1d 95% VaR on the invested sleeve with Euler component VaR per
+  position (sums exactly to total), marginal VaR per +1pp weight, risk
+  contribution %, diversification ratio, HHI, effective names; `stress_tests`
+  — six deterministic scenarios tied to the planner priors (AI capex
+  drawdown, rate shock, semis export controls, BTC crash, oil spike, AGI
+  melt-up) with book vs assumed-SPY impact and active spread.
+- Same sleeve weighting as mc_risk_report (MV / gross over names present in
+  the history frame); names missing from the frame are listed in `excluded`.
+- Both closed-form/deterministic (no RNG), zero new network calls, no new
+  history.csv columns. Journal gains Risk decomposition + Stress tests
+  sections, placed next to the MC block with the parametric/simulated
+  distinction stated.
+
+## 9. Test/CI baseline
 
 `tests.yml` runs `pytest quant/tests/` only (12 tests, no network, no agent/
 coverage). There are currently **zero tests for agent/** (portfolio I/O,

@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from agent import daily, planner, portfolio, prices, risk
+from agent import analytics, daily, planner, portfolio, prices, risk
 
 
 @pytest.fixture
@@ -55,7 +55,8 @@ def test_daily_end_to_end_two_runs(sandbox):
     assert daily.main() == 0  # run 2: same-day rerun
 
     state = json.loads((sandbox / "state" / "portfolio.json").read_text())
-    for key in ("realized", "benchmark", "attribution", "data_quality", "bl_weights", "mc_report"):
+    for key in ("realized", "benchmark", "attribution", "risk_decomposition",
+                "stress_tests", "data_quality", "bl_weights", "mc_report"):
         assert key in state, f"portfolio.json missing {key}"
     assert state["data_quality"]["status"] == "ok"
     assert state["benchmark"]["source"].startswith("SPY")
@@ -88,6 +89,21 @@ def test_daily_end_to_end_two_runs(sandbox):
     assert "bench_cum_return_pct" in cd
     assert state["attribution"]["excluded_from_mark"] == []
 
+    # risk decomposition invariants: contributions sum to 100, effective
+    # names within [1, position count], components sum to total VaR
+    rd = state["risk_decomposition"]
+    assert sum(r["risk_contribution_pct"] for r in rd["positions"]) == pytest.approx(100.0)
+    assert 1.0 <= rd["effective_names"] <= len(rd["positions"])
+    assert sum(r["component_var_1d_usd"] for r in rd["positions"]) == pytest.approx(
+        rd["var_1d_usd"], rel=1e-6,
+    )
+    assert rd["excluded"] == []
+
+    # stress tests: deterministic rows for every default scenario
+    scen = state["stress_tests"]["scenarios"]
+    assert len(scen) == len(analytics.STRESS_SCENARIOS)
+    assert all("book_return_pct" in s and "active_pct" in s for s in scen)
+
     journals = list((sandbox / "journal").glob("*.md"))
     assert len(journals) == 1
     text = journals[0].read_text()
@@ -99,6 +115,8 @@ def test_daily_end_to_end_two_runs(sandbox):
         "## Attribution",
         "### Cash drag",
         "Monte Carlo — SIMULATED",
+        "## Risk decomposition",
+        "## Stress tests",
     ):
         assert section in text, f"journal missing: {section!r}"
 
