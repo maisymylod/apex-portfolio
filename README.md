@@ -6,7 +6,8 @@ Situational Awareness Capital (Leopold Aschenbrenner). Starting capital:
 
 A GitHub Actions cron runs `python -m agent.daily` each weekday at 4:30pm
 ET. Each run pulls fresh prices via yfinance, marks the portfolio to
-market, updates a self-supervised conviction-bias file, writes a journal
+market, computes realized and SPY-relative analytics plus a data-quality
+check, updates a self-supervised conviction-bias file, writes a journal
 entry to `journal/`, and refreshes the live P&L table below.
 
 ## Live P&L
@@ -47,10 +48,12 @@ agent/
   prices.py     yfinance wrapper
   portfolio.py   state I/O, mark-to-market
   risk.py        sector/concentration flags + learning loop
+  analytics.py   realized + benchmark analytics, data-quality guard (no network)
   daily.py       entrypoint for the cron
+  tests/         no-network tests for the agent layer
 state/
-  portfolio.json current positions, cash, cost basis
-  history.csv    daily total-value snapshot
+  portfolio.json current positions, cash, cost basis, realized/benchmark blocks
+  history.csv    daily snapshot (equity curve, MC risk, benchmark value, data status)
   learning.json  rolling conviction biases
 journal/
   YYYY-MM-DD.md  one file per run

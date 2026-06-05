@@ -84,17 +84,27 @@ def mark_to_market(state: dict, prices: dict[str, float]) -> dict:
     }
 
 
+# Schema contract: columns are APPEND-ONLY. daily.py reads index 1 and
+# docs/app.js destructures indices 0-10 positionally; extra trailing columns
+# are ignored by both, but inserting or reordering breaks them.
 HISTORY_HEADER = [
     "date_utc", "total_value", "cash", "holdings_value", "pnl_usd", "pnl_pct",
     "var_95_usd", "cvar_95_usd", "sim_sharpe", "p_ruin", "bl_run",
+    "bench_value", "data_status",
 ]
 
 
-def append_history(snapshot: dict, mc_report: dict | None = None, bl_run: bool = False) -> None:
+def append_history(
+    snapshot: dict,
+    mc_report: dict | None = None,
+    bl_run: bool = False,
+    bench_value: float | None = None,
+    data_status: str = "",
+) -> None:
     """Append one row to state/history.csv. New columns are filled when
     available; legacy rows just have empty cells in the new columns.
 
-    Migrates an old (6-column) header to the new (11-column) header in place
+    Migrates an older (shorter) header to the current header in place
     if needed, without rewriting existing data rows.
     """
     STATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -112,6 +122,7 @@ def append_history(snapshot: dict, mc_report: dict | None = None, bl_run: bool =
     sharpe_v = f"{mc_report['sim_sharpe']:.3f}" if mc_report else ""
     pruin_v = f"{mc_report['p_ruin']:.4f}" if mc_report else ""
     bl_v = "1" if bl_run else "0"
+    bench_v = f"{bench_value:.2f}" if bench_value is not None else ""
 
     with HISTORY_PATH.open("a", newline="") as f:
         csv.writer(f).writerow([
@@ -122,4 +133,5 @@ def append_history(snapshot: dict, mc_report: dict | None = None, bl_run: bool =
             f"{snapshot['total_pnl_usd']:.2f}",
             f"{snapshot['total_pnl_pct']:.2f}",
             var_v, cvar_v, sharpe_v, pruin_v, bl_v,
+            bench_v, data_status,
         ])
