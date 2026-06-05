@@ -36,6 +36,14 @@ RUIN_THRESHOLD_FRAC = 0.70    # ruin = drop below 70% of current value
 MC_N_PATHS = 10_000
 MC_HORIZON = 252
 
+# crude sector buckets matching the planner thesis (also used by attribution)
+SECTOR_MAP = {
+    "BE": "power", "CEG": "power", "VST": "power", "GEV": "power",
+    "MSFT": "hyperscaler", "GOOG": "hyperscaler", "META": "hyperscaler",
+    "NVDA": "semi", "TSM": "semi", "AVGO": "semi",
+    "CLSK": "miners", "RIOT": "miners", "BITF": "miners",
+}
+
 
 def load_learning() -> dict:
     if not LEARN_PATH.exists():
@@ -77,16 +85,9 @@ def update_biases(snapshot: dict, prior_total: float | None) -> dict:
 def risk_report(snapshot: dict) -> dict:
     positions = snapshot["positions"]
     largest = max(positions, key=lambda p: p["weight_pct"]) if positions else None
-    # crude sector buckets matching the planner thesis
-    sector_map = {
-        "BE": "power", "CEG": "power", "VST": "power", "GEV": "power",
-        "MSFT": "hyperscaler", "GOOG": "hyperscaler", "META": "hyperscaler",
-        "NVDA": "semi", "TSM": "semi", "AVGO": "semi",
-        "CLSK": "miners", "RIOT": "miners", "BITF": "miners",
-    }
     sector_weight: dict[str, float] = {}
     for p in positions:
-        s = sector_map.get(p["ticker"], "other")
+        s = SECTOR_MAP.get(p["ticker"], "other")
         sector_weight[s] = sector_weight.get(s, 0.0) + p["weight_pct"]
     flags = []
     if largest and largest["weight_pct"] > 20:

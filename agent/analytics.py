@@ -49,6 +49,18 @@ def load_equity_curve(history_path: Path) -> list[tuple[str, float]]:
     return sorted(out.items())
 
 
+def load_history_rows(history_path: Path) -> list[dict]:
+    """All history.csv rows as dicts keyed by column name.
+
+    Legacy short rows simply have None in the newer columns. Returns [] if
+    the file is missing.
+    """
+    if not history_path.exists():
+        return []
+    with history_path.open() as f:
+        return list(csv.DictReader(f))
+
+
 def _returns(values: list[float]) -> list[float]:
     return [cur / prev - 1.0 for prev, cur in zip(values, values[1:]) if prev > 0]
 
@@ -247,6 +259,112 @@ def benchmark_metrics(
         mb_dn = _mean([b for _, b in down])
         if mb_dn != 0:
             out["down_capture"] = _mean([p for p, _ in down]) / mb_dn
+    return out
+
+
+def attribution(
+    positions: list[dict],
+    starting_capital: float,
+    prior_closes: dict[str, float] | None = None,
+    prior_total: float | None = None,
+    sector_map: dict[str, str] | None = None,
+) -> dict:
+    """Contribution-to-return by position and by sector, daily and cumulative.
+
+    Cumulative contribution = position P&L / starting capital — exact while
+    shares are unchanged since seed (no trades have occurred), and it sums to
+    the book's total_pnl_pct because cash contributes exactly zero.
+
+    Daily contribution = shares x (price - prior close) / prior book total.
+    The day fields are None for any position whose prior close is missing,
+    and a sector's day figure is None if ANY of its names is missing (a
+    partial sum would silently misattribute the day).
+    """
+    sector_map = sector_map or {}
+    rows = []
+    for p in positions:
+        row = {
+            "ticker": p["ticker"],
+            "sector": sector_map.get(p["ticker"], "other"),
+            "weight_pct": p["weight_pct"],
+            "cum_pnl_usd": p["pnl_usd"],
+            "cum_contribution_pct": (
+                p["pnl_usd"] / starting_capital * 100 if starting_capital else None
+            ),
+            "day_pnl_usd": None,
+            "day_contribution_pct": None,
+        }
+        prior = (prior_closes or {}).get(p["ticker"])
+        if prior and prior > 0 and prior_total:
+            day_pnl = p["shares"] * (p["price"] - prior)
+            row["day_pnl_usd"] = day_pnl
+            row["day_contribution_pct"] = day_pnl / prior_total * 100
+        rows.append(row)
+    rows.sort(key=lambda r: -(r["cum_contribution_pct"] or 0.0))
+
+    sectors: dict[str, dict] = {}
+    for r in rows:
+        s = sectors.setdefault(r["sector"], {
+            "sector": r["sector"], "weight_pct": 0.0,
+            "cum_contribution_pct": 0.0, "day_contribution_pct": 0.0,
+            "_day_complete": True,
+        })
+        s["weight_pct"] += r["weight_pct"] or 0.0
+        s["cum_contribution_pct"] += r["cum_contribution_pct"] or 0.0
+        if r["day_contribution_pct"] is None:
+            s["_day_complete"] = False
+        else:
+            s["day_contribution_pct"] += r["day_contribution_pct"]
+    sector_rows = []
+    for s in sectors.values():
+        if not s.pop("_day_complete"):
+            s["day_contribution_pct"] = None
+        sector_rows.append(s)
+    sector_rows.sort(key=lambda s: -(s["cum_contribution_pct"] or 0.0))
+
+    return {"positions": rows, "sectors": sector_rows}
+
+
+def cash_drag_metrics(snapshot: dict, prior_row: dict | None = None) -> dict:
+    """Quantify the idle-cash drag: invested-sleeve return vs total book.
+
+    Sleeve returns assume no flows, which holds since seed: no trades have
+    executed and cash has been constant. Cumulative sleeve return uses the
+    seed cost of the marked positions; daily figures need the prior recorded
+    history row (total_value + holdings_value, read by name). Drag = book
+    return minus sleeve return, in percentage points (negative when idle
+    cash diluted a positive sleeve).
+    """
+    out = {
+        "cash_usd": snapshot["cash"],
+        "cash_weight_pct": None,
+        "sleeve_cum_return_pct": None,
+        "book_cum_return_pct": snapshot["total_pnl_pct"],
+        "cum_drag_pct": None,
+        "sleeve_day_return_pct": None,
+        "book_day_return_pct": None,
+        "day_drag_pct": None,
+    }
+    total = snapshot["total_value"]
+    if total:
+        out["cash_weight_pct"] = snapshot["cash"] / total * 100
+    invested_cost = sum(p["shares"] * p["cost_basis"] for p in snapshot["positions"])
+    if invested_cost > 0:
+        sleeve_cum = (snapshot["holdings_value"] / invested_cost - 1.0) * 100
+        out["sleeve_cum_return_pct"] = sleeve_cum
+        out["cum_drag_pct"] = snapshot["total_pnl_pct"] - sleeve_cum
+    if prior_row:
+        try:
+            prior_total = float(prior_row["total_value"])
+            prior_holdings = float(prior_row["holdings_value"])
+        except (KeyError, TypeError, ValueError):
+            prior_total = prior_holdings = 0.0
+        if prior_total > 0 and prior_holdings > 0:
+            out["book_day_return_pct"] = (total / prior_total - 1.0) * 100
+            out["sleeve_day_return_pct"] = (
+                (snapshot["holdings_value"] / prior_holdings - 1.0) * 100
+            )
+            out["day_drag_pct"] = out["book_day_return_pct"] - out["sleeve_day_return_pct"]
     return out
 
 

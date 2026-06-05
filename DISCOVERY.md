@@ -187,7 +187,25 @@ Data-flow changes shipped in Phase 1 (G + A + B):
 - **agent/tests/**: known-value, edge-case, header-migration, and fully mocked
   end-to-end tests; tests.yml now runs both quant/tests/ and agent/tests/.
 
-## 7. Test/CI baseline
+## 7. Phase 2 addendum (implemented 2026-06-05)
+
+Attribution + cash drag (gap C):
+
+- **portfolio.json new key** (additive): `attribution` — per-position and
+  per-sector contribution-to-return (1d + cumulative) plus a `cash_drag`
+  block (sleeve vs book vs benchmark, 1d + cumulative). No new history.csv
+  columns; everything derives from existing data.
+- Cumulative contribution = position P&L / starting capital, exact while no
+  trades have executed; it sums to total_pnl_pct (cash contributes zero) —
+  asserted in the integration test. Daily contribution uses prior closes
+  from the existing history frame + the prior recorded row; a sector's 1d
+  figure is None if any member name is missing (no misleading partial sums).
+- The sector map moved to `risk.SECTOR_MAP` (module constant) so risk_report
+  and attribution share one source.
+- Journal gains an Attribution section (positions, sectors, cash drag).
+  Zero new network calls; fail-soft block like the others.
+
+## 8. Test/CI baseline
 
 `tests.yml` runs `pytest quant/tests/` only (12 tests, no network, no agent/
 coverage). There are currently **zero tests for agent/** (portfolio I/O,

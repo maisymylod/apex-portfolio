@@ -245,6 +245,74 @@ def compute_benchmark_block(state: dict, snapshot: dict, history, days: int) -> 
         return None
 
 
+def compute_attribution_block(state: dict, snapshot: dict, history, benchmark: dict | None) -> dict | None:
+    """Per-position/sector contribution-to-return + explicit cash drag.
+
+    Daily figures use prior closes from the already-fetched history frame
+    and the prior recorded history row; cumulative figures need only cost
+    basis. Fail-soft like every other analytics block.
+    """
+    try:
+        import pandas as pd
+
+        today_s = snapshot["as_of"][:10]
+        rows = analytics.load_history_rows(portfolio.HISTORY_PATH)
+        prior_rows = [r for r in rows if r.get("date_utc") and r["date_utc"] < today_s]
+        prior_row = prior_rows[-1] if prior_rows else None
+        prior_total = None
+        if prior_row:
+            try:
+                prior_total = float(prior_row["total_value"])
+            except (KeyError, TypeError, ValueError):
+                prior_total = None
+
+        prior_closes = None
+        if history is not None and not history.empty:
+            past = history[history.index < pd.Timestamp(today_s)]
+            if not past.empty:
+                last = past.iloc[-1]
+                prior_closes = {
+                    t: float(last[t]) for t in history.columns if pd.notna(last[t])
+                }
+
+        result = analytics.attribution(
+            snapshot["positions"], state["starting_capital"],
+            prior_closes=prior_closes, prior_total=prior_total,
+            sector_map=risk.SECTOR_MAP,
+        )
+        result["cash_drag"] = analytics.cash_drag_metrics(snapshot, prior_row)
+
+        # Names excluded from the mark (no price) hit the book total but can't
+        # be attributed — name them and quantify the unattributed residual.
+        marked = {p["ticker"] for p in snapshot["positions"]}
+        result["excluded_from_mark"] = sorted(t for t in state["positions"] if t not in marked)
+        day_vals = [r["day_contribution_pct"] for r in result["positions"]]
+        attributed = (
+            sum(v for v in day_vals if v is not None)
+            if any(v is not None for v in day_vals) else None
+        )
+        result["day_attributed_pct"] = attributed
+        book_day = result["cash_drag"]["book_day_return_pct"]
+        result["day_residual_pct"] = (
+            book_day - attributed
+            if book_day is not None and attributed is not None else None
+        )
+
+        if benchmark:
+            result["cash_drag"]["bench_cum_return_pct"] = benchmark["bench_cum_return_pct"]
+            curve = benchmark.get("curve") or []
+            if len(curve) >= 2 and curve[-2]["value"] > 0:
+                result["cash_drag"]["bench_day_return_pct"] = (
+                    (curve[-1]["value"] / curve[-2]["value"] - 1.0) * 100
+                )
+        result["asof"] = snapshot["as_of"]
+        return result
+    except Exception:
+        traceback.print_exc()
+        print("[attribution] attribution block failed, continuing")
+        return None
+
+
 def compute_data_quality_block(state: dict, px: dict, history, snapshot: dict) -> dict | None:
     """Flag missing/stale price data instead of letting it pass silently."""
     try:
@@ -271,6 +339,7 @@ def write_journal(
     options: dict | None = None,
     realized: dict | None = None,
     benchmark: dict | None = None,
+    attribution: dict | None = None,
     data_quality: dict | None = None,
 ) -> Path:
     JOURNAL_DIR.mkdir(parents=True, exist_ok=True)
@@ -354,6 +423,77 @@ def write_journal(
         lines.append(f"| Information ratio | {_fmt(benchmark['info_ratio'], '{:.2f}')} |")
         lines.append(f"| Up capture | {_fmt(benchmark['up_capture'], '{:.2f}')} |")
         lines.append(f"| Down capture | {_fmt(benchmark['down_capture'], '{:.2f}')} |")
+        lines.append("")
+
+    if attribution:
+        lines.append("## Attribution")
+        lines.append(
+            "_Contribution to book return (pp = percentage points). Cumulative sums to "
+            "total P&L %; cash contributes zero. 1d figures need prior closes + a prior "
+            "recorded row._"
+        )
+        lines.append("")
+        lines.append("| Ticker | Sector | 1d P&L | 1d contrib | Cum P&L | Cum contrib |")
+        lines.append("|--------|--------|--------|------------|---------|-------------|")
+        for r in attribution["positions"]:
+            lines.append(
+                f"| {r['ticker']} | {r['sector']} | {_fmt(r['day_pnl_usd'], '${:+.2f}')} | "
+                f"{_fmt(r['day_contribution_pct'], '{:+.2f}pp')} | "
+                f"{_fmt(r['cum_pnl_usd'], '${:+.2f}')} | "
+                f"{_fmt(r['cum_contribution_pct'], '{:+.2f}pp')} |"
+            )
+        lines.append("")
+        lines.append("### Sectors")
+        lines.append("| Sector | Weight | 1d contrib | Cum contrib |")
+        lines.append("|--------|--------|------------|-------------|")
+        for s in attribution["sectors"]:
+            lines.append(
+                f"| {s['sector']} | {s['weight_pct']:.1f}% | "
+                f"{_fmt(s['day_contribution_pct'], '{:+.2f}pp')} | "
+                f"{_fmt(s['cum_contribution_pct'], '{:+.2f}pp')} |"
+            )
+        if attribution.get("day_attributed_pct") is not None:
+            lines.append("")
+            lines.append(
+                f"_1d attributed: {attribution['day_attributed_pct']:+.2f}pp of a "
+                f"{_fmt(attribution['cash_drag'].get('book_day_return_pct'))} book move; "
+                f"residual {_fmt(attribution['day_residual_pct'], '{:+.2f}pp')} "
+                f"(excluded marks, adjustment/timing)._"
+            )
+        if attribution.get("excluded_from_mark"):
+            lines.append("")
+            lines.append(
+                f"_EXCLUDED from mark (no price — P&L hits the book total but cannot be "
+                f"attributed): {', '.join(attribution['excluded_from_mark'])}._"
+            )
+        cd = attribution.get("cash_drag")
+        if cd:
+            lines.append("")
+            lines.append("### Cash drag")
+            lines.append(
+                f"_Book holds {_fmt(cd['cash_weight_pct'], '{:.1f}%')} idle cash "
+                f"(${cd['cash_usd']:.2f}). Sleeve = invested positions only; "
+                f"drag = book minus sleeve._"
+            )
+            lines.append("")
+            lines.append("| Return | 1d | Cumulative |")
+            lines.append("|--------|----|------------|")
+            lines.append(
+                f"| Invested sleeve | {_fmt(cd['sleeve_day_return_pct'])} | "
+                f"{_fmt(cd['sleeve_cum_return_pct'])} |"
+            )
+            lines.append(
+                f"| Total book | {_fmt(cd['book_day_return_pct'])} | "
+                f"{_fmt(cd['book_cum_return_pct'])} |"
+            )
+            lines.append(
+                f"| Benchmark | {_fmt(cd.get('bench_day_return_pct'))} | "
+                f"{_fmt(cd.get('bench_cum_return_pct'))} |"
+            )
+            lines.append(
+                f"| Cash drag | {_fmt(cd['day_drag_pct'], '{:+.2f}pp')} | "
+                f"{_fmt(cd['cum_drag_pct'], '{:+.2f}pp')} |"
+            )
         lines.append("")
 
     lines.append("## Learning loop (conviction biases)")
@@ -540,11 +680,14 @@ def main() -> int:
     quant_history = quant["history"] if quant else None
     realized = compute_realized_block(state, snapshot)
     benchmark = compute_benchmark_block(state, snapshot, quant_history, hist_days)
+    attribution = compute_attribution_block(state, snapshot, quant_history, benchmark)
     data_quality = compute_data_quality_block(state, px, quant_history, snapshot)
     if realized:
         state["realized"] = realized
     if benchmark:
         state["benchmark"] = benchmark
+    if attribution:
+        state["attribution"] = attribution
     if data_quality:
         state["data_quality"] = data_quality
 
@@ -564,7 +707,8 @@ def main() -> int:
 
     write_journal(
         snapshot, risk_rep, learning, quant=quant, mc_report=mc_report, options=options,
-        realized=realized, benchmark=benchmark, data_quality=data_quality,
+        realized=realized, benchmark=benchmark, attribution=attribution,
+        data_quality=data_quality,
     )
 
     history_rows = history.read_text().strip().splitlines() if history.exists() else []
