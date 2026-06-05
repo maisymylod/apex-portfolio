@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import sys
 import traceback
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
-from . import planner, portfolio, prices, risk
+from . import analytics, planner, portfolio, prices, risk
 from quant import bsm
 
 BL_HISTORY_DAYS = 90
@@ -66,7 +66,7 @@ def seed_portfolio() -> dict:
     return state
 
 
-def compute_quant_block(snapshot: dict, learning: dict) -> dict | None:
+def compute_quant_block(snapshot: dict, learning: dict, days: int = BL_HISTORY_DAYS) -> dict | None:
     """Pull price history, run BL, return a quant snapshot dict.
 
     Returns None and logs the traceback on any failure — the daily cron
@@ -74,7 +74,7 @@ def compute_quant_block(snapshot: dict, learning: dict) -> dict | None:
     """
     try:
         biases = learning.get("biases", {}) if learning else {}
-        history = prices.fetch_history(planner.universe_tickers(), days=BL_HISTORY_DAYS)
+        history = prices.fetch_history(planner.universe_tickers(), days=days)
         if history.empty or history.shape[0] < 20:
             print("[quant] insufficient price history, skipping BL")
             return None
@@ -170,6 +170,98 @@ def compute_options_overlay(snapshot: dict, quant: dict | None, mc_report: dict 
         return None
 
 
+def _history_window_days(state: dict) -> int:
+    """Price-history window: wide enough to always cover inception so the
+    benchmark curve backfills from day 1 off the same single yfinance call."""
+    try:
+        inception = state.get("inception_date")
+        if not inception:
+            return BL_HISTORY_DAYS
+        age = (datetime.now(timezone.utc).date() - date.fromisoformat(inception)).days
+        return max(BL_HISTORY_DAYS, age + 10)
+    except Exception:
+        return BL_HISTORY_DAYS
+
+
+def _port_curve_with_today(snapshot: dict) -> list[tuple[str, float]]:
+    """Recorded equity curve plus today's (not yet appended) snapshot point.
+
+    A same-date rerun replaces the recorded point rather than duplicating it.
+    """
+    today = (snapshot["as_of"][:10], snapshot["total_value"])
+    curve = [c for c in analytics.load_equity_curve(portfolio.HISTORY_PATH) if c[0] != today[0]]
+    return curve + [today]
+
+
+def compute_realized_block(state: dict, snapshot: dict) -> dict | None:
+    """REALIZED performance from the recorded equity curve (not simulated)."""
+    try:
+        return analytics.realized_metrics(
+            _port_curve_with_today(snapshot),
+            state["starting_capital"],
+            rf_annual=RISK_FREE_RATE,
+        )
+    except Exception:
+        traceback.print_exc()
+        print("[realized] realized-metrics block failed, continuing")
+        return None
+
+
+def compute_benchmark_block(state: dict, snapshot: dict, history, days: int) -> dict | None:
+    """Benchmark curve (backfilled from inception) + benchmark-relative stats.
+
+    SPY already rides along in the BL history fetch; ^GSPC is fetched only
+    if SPY is missing, so the happy path adds zero network calls.
+    """
+    try:
+        inception = state.get("inception_date")
+        if not inception:
+            return None
+        series = None
+        source = None
+        if history is not None and not history.empty and "SPY" in history.columns:
+            s = history["SPY"].dropna()
+            if not s.empty:
+                series, source = s, "SPY (adjusted close)"
+        if series is None:
+            fb = prices.fetch_history(["^GSPC"], days=days)
+            if not fb.empty and "^GSPC" in fb.columns:
+                series, source = fb["^GSPC"].dropna(), "^GSPC (price)"
+        if series is None or series.empty:
+            print("[benchmark] no benchmark series available, skipping")
+            return None
+        curve = analytics.benchmark_curve(series, inception, state["starting_capital"])
+        if not curve:
+            print("[benchmark] benchmark curve empty after inception filter, skipping")
+            return None
+        metrics = analytics.benchmark_metrics(
+            _port_curve_with_today(snapshot), curve,
+            state["starting_capital"], rf_annual=RISK_FREE_RATE,
+        )
+        return {"source": source, "asof": snapshot["as_of"], "curve": curve, **metrics}
+    except Exception:
+        traceback.print_exc()
+        print("[benchmark] benchmark block failed, continuing")
+        return None
+
+
+def compute_data_quality_block(state: dict, px: dict, history, snapshot: dict) -> dict | None:
+    """Flag missing/stale price data instead of letting it pass silently."""
+    try:
+        as_of = date.fromisoformat(snapshot["as_of"][:10])
+        return analytics.data_quality_report(
+            list(state["positions"].keys()), px, history, as_of,
+        )
+    except Exception:
+        traceback.print_exc()
+        print("[data-quality] check failed, continuing")
+        return None
+
+
+def _fmt(v: float | None, pattern: str = "{:+.2f}%", na: str = "n/a") -> str:
+    return pattern.format(v) if v is not None else na
+
+
 def write_journal(
     snapshot: dict,
     risk_rep: dict,
@@ -177,6 +269,9 @@ def write_journal(
     quant: dict | None = None,
     mc_report: dict | None = None,
     options: dict | None = None,
+    realized: dict | None = None,
+    benchmark: dict | None = None,
+    data_quality: dict | None = None,
 ) -> Path:
     JOURNAL_DIR.mkdir(parents=True, exist_ok=True)
     date = snapshot["as_of"][:10]
@@ -187,9 +282,15 @@ def write_journal(
         f"**Total value:** ${snapshot['total_value']:.2f}  ",
         f"**P&L since inception:** ${snapshot['total_pnl_usd']:+.2f} ({snapshot['total_pnl_pct']:+.2f}%)  ",
         f"**Cash:** ${snapshot['cash']:.2f}  ",
-        f"**Risk status:** {risk_rep['status']}",
+        f"**Risk status:** {risk_rep['status']}  ",
+        f"**Data quality:** {data_quality['status'] if data_quality else 'unknown'}",
         "",
     ]
+    if data_quality and data_quality["issues"]:
+        lines.append("## Data quality flags")
+        for issue in data_quality["issues"]:
+            lines.append(f"- {issue}")
+        lines.append("")
     if risk_rep["flags"]:
         lines.append("## Risk flags")
         for f in risk_rep["flags"]:
@@ -210,6 +311,51 @@ def write_journal(
     for s, w in sorted(risk_rep["sector_weights"].items(), key=lambda x: -x[1]):
         lines.append(f"- {s}: {w:.1f}%")
     lines.append("")
+
+    if realized:
+        lines.append("## Realized performance")
+        lines.append(
+            f"_From the recorded equity curve ({realized['n_obs']} runs) — REALIZED, not "
+            f"simulated. Annualized return and Calmar appear after "
+            f"{analytics.MIN_OBS_ANNUALIZE} runs._"
+        )
+        lines.append("")
+        lines.append("| Metric | Value |")
+        lines.append("|--------|-------|")
+        lines.append(f"| Cumulative return | {_fmt(realized['cum_return_pct'])} |")
+        lines.append(f"| Annualized return | {_fmt(realized['ann_return_pct'])} |")
+        lines.append(f"| Realized vol (ann) | {_fmt(realized['vol_ann_pct'], '{:.2f}%')} |")
+        lines.append(f"| Realized Sharpe | {_fmt(realized['sharpe'], '{:.2f}')} |")
+        lines.append(f"| Sortino | {_fmt(realized['sortino'], '{:.2f}')} |")
+        lines.append(f"| Calmar | {_fmt(realized['calmar'], '{:.2f}')} |")
+        lines.append(f"| Current drawdown | {_fmt(realized['current_drawdown_pct'])} |")
+        lines.append(f"| Max drawdown | {_fmt(realized['max_drawdown_pct'])} |")
+        if realized.get("trailing"):
+            t = realized["trailing"]
+            lines.append(f"| Trailing {t['window_runs']}-run return | {_fmt(t['return_pct'])} |")
+        lines.append("")
+
+    if benchmark:
+        lines.append(f"## Benchmark comparison — {benchmark['source']}")
+        lines.append(
+            f"_Backfilled from inception. {benchmark['n_obs']} aligned daily returns; "
+            f"beta/alpha/TE/IR/capture need {analytics.MIN_OBS_BETA}+._"
+        )
+        lines.append("")
+        lines.append("| Metric | Value |")
+        lines.append("|--------|-------|")
+        lines.append(f"| Portfolio cum return | {_fmt(benchmark['port_cum_return_pct'])} |")
+        lines.append(f"| Benchmark cum return | {_fmt(benchmark['bench_cum_return_pct'])} |")
+        lines.append(f"| Active return (cum) | {_fmt(benchmark['active_return_cum_pct'])} |")
+        lines.append(f"| Active return (1d) | {_fmt(benchmark['active_return_1d_pct'])} |")
+        lines.append(f"| Beta | {_fmt(benchmark['beta'], '{:.2f}')} |")
+        lines.append(f"| Alpha (CAPM, ann) | {_fmt(benchmark['alpha_ann_pct'])} |")
+        lines.append(f"| Tracking error (ann) | {_fmt(benchmark['tracking_error_ann_pct'], '{:.2f}%')} |")
+        lines.append(f"| Information ratio | {_fmt(benchmark['info_ratio'], '{:.2f}')} |")
+        lines.append(f"| Up capture | {_fmt(benchmark['up_capture'], '{:.2f}')} |")
+        lines.append(f"| Down capture | {_fmt(benchmark['down_capture'], '{:.2f}')} |")
+        lines.append("")
+
     lines.append("## Learning loop (conviction biases)")
     biases = learning.get("biases", {})
     if biases:
@@ -246,10 +392,11 @@ def write_journal(
 
     if mc_report:
         lines.append("")
-        lines.append("## Quant risk snapshot (Monte Carlo)")
+        lines.append("## Quant risk snapshot (Monte Carlo — SIMULATED)")
         lines.append(
             f"_{mc_report['n_paths']:,} paths × {mc_report['horizon_days']}d, "
-            f"drift={mc_report['drift_source']}_"
+            f"drift={mc_report['drift_source']}. Forward-looking simulation — "
+            f"distinct from the realized metrics above._"
         )
         lines.append("")
         lines.append("| Metric | Value | Flag |")
@@ -371,7 +518,8 @@ def main() -> int:
 
     learning = risk.update_biases(snapshot, prior_total)
 
-    quant = compute_quant_block(snapshot, learning)
+    hist_days = _history_window_days(state)
+    quant = compute_quant_block(snapshot, learning, days=hist_days)
     mc_report = None
     if quant:
         state["bl_weights"] = quant["bl_weights"]
@@ -389,10 +537,35 @@ def main() -> int:
         state["options_overlay"] = {k: v for k, v in options.items() if k != "triggers"}
         state["options_overlay"]["triggers"] = options["triggers"]
 
-    portfolio.append_history(snapshot, mc_report=mc_report, bl_run=bool(quant))
+    quant_history = quant["history"] if quant else None
+    realized = compute_realized_block(state, snapshot)
+    benchmark = compute_benchmark_block(state, snapshot, quant_history, hist_days)
+    data_quality = compute_data_quality_block(state, px, quant_history, snapshot)
+    if realized:
+        state["realized"] = realized
+    if benchmark:
+        state["benchmark"] = benchmark
+    if data_quality:
+        state["data_quality"] = data_quality
+
+    bench_today = None
+    if benchmark:
+        today_s = snapshot["as_of"][:10]
+        past = [p for p in benchmark["curve"] if p["date"] <= today_s]
+        if past:
+            bench_today = past[-1]["value"]
+
+    portfolio.append_history(
+        snapshot, mc_report=mc_report, bl_run=bool(quant),
+        bench_value=bench_today,
+        data_status=data_quality["status"] if data_quality else "",
+    )
     portfolio.save(state)
 
-    write_journal(snapshot, risk_rep, learning, quant=quant, mc_report=mc_report, options=options)
+    write_journal(
+        snapshot, risk_rep, learning, quant=quant, mc_report=mc_report, options=options,
+        realized=realized, benchmark=benchmark, data_quality=data_quality,
+    )
 
     history_rows = history.read_text().strip().splitlines() if history.exists() else []
     update_readme(snapshot, max(0, len(history_rows) - 1))

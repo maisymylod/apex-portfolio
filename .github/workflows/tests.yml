@@ -17,4 +17,4 @@ jobs:
       - name: Install deps
         run: pip install -r requirements.txt
       - name: Run pytest
-        run: python -m pytest quant/tests/ -v
+        run: python -m pytest quant/tests/ agent/tests/ -v
