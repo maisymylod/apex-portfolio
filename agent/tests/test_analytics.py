@@ -185,6 +185,107 @@ def test_benchmark_metrics_insufficient_data():
     assert empty["n_obs"] == 0 and empty["active_return_cum_pct"] is None
 
 
+# ---------------------------------------------------------------- attribution
+
+def _positions():
+    # AAA: 10 sh, cost 10 -> price 12 (cum +20); BBB: 5 sh, cost 20 -> price 18 (cum -10)
+    return [
+        {"ticker": "AAA", "shares": 10.0, "cost_basis": 10.0, "price": 12.0,
+         "market_value": 120.0, "pnl_usd": 20.0, "weight_pct": 60.0},
+        {"ticker": "BBB", "shares": 5.0, "cost_basis": 20.0, "price": 18.0,
+         "market_value": 90.0, "pnl_usd": -10.0, "weight_pct": 45.0},
+    ]
+
+
+def test_attribution_known_values():
+    out = analytics.attribution(
+        _positions(), 200.0,
+        prior_closes={"AAA": 11.0, "BBB": 19.0}, prior_total=205.0,
+        sector_map={"AAA": "x", "BBB": "y"},
+    )
+    by = {r["ticker"]: r for r in out["positions"]}
+    # cumulative: pnl / starting capital
+    assert by["AAA"]["cum_contribution_pct"] == pytest.approx(10.0)
+    assert by["BBB"]["cum_contribution_pct"] == pytest.approx(-5.0)
+    # cumulative contributions sum to the book's total pnl pct (cash adds zero)
+    assert sum(r["cum_contribution_pct"] for r in out["positions"]) == pytest.approx(5.0)
+    # daily: shares x (price - prior close) / prior total
+    assert by["AAA"]["day_pnl_usd"] == pytest.approx(10.0)
+    assert by["AAA"]["day_contribution_pct"] == pytest.approx(10.0 / 205.0 * 100)
+    assert by["BBB"]["day_pnl_usd"] == pytest.approx(-5.0)
+    assert by["BBB"]["day_contribution_pct"] == pytest.approx(-5.0 / 205.0 * 100)
+    # sorted by cumulative contribution desc
+    assert [r["ticker"] for r in out["positions"]] == ["AAA", "BBB"]
+    sec = {s["sector"]: s for s in out["sectors"]}
+    assert sec["x"]["cum_contribution_pct"] == pytest.approx(10.0)
+    assert sec["y"]["day_contribution_pct"] == pytest.approx(-5.0 / 205.0 * 100)
+
+
+def test_attribution_missing_prior_close_degrades_day_fields():
+    out = analytics.attribution(
+        _positions(), 200.0,
+        prior_closes={"AAA": 11.0}, prior_total=205.0,  # BBB prior missing
+        sector_map={"AAA": "x", "BBB": "x"},
+    )
+    by = {r["ticker"]: r for r in out["positions"]}
+    assert by["AAA"]["day_contribution_pct"] is not None
+    assert by["BBB"]["day_pnl_usd"] is None
+    assert by["BBB"]["cum_contribution_pct"] == pytest.approx(-5.0)  # cum still exact
+    # shared sector: day figure must be None, not a misleading partial sum
+    assert out["sectors"][0]["day_contribution_pct"] is None
+    assert out["sectors"][0]["cum_contribution_pct"] == pytest.approx(5.0)
+
+
+def test_attribution_no_priors_cum_only():
+    out = analytics.attribution(_positions(), 200.0)
+    assert all(r["day_pnl_usd"] is None for r in out["positions"])
+    assert all(r["cum_contribution_pct"] is not None for r in out["positions"])
+
+
+# ------------------------------------------------------------------ cash drag
+
+def test_cash_drag_known_values():
+    # invested cost 200, holdings 220 -> sleeve +10%; cash 100, total 320,
+    # starting 300 -> book +6.6667%; drag = book - sleeve
+    snapshot = {
+        "cash": 100.0, "holdings_value": 220.0, "total_value": 320.0,
+        "total_pnl_pct": 20.0 / 300.0 * 100,
+        "positions": _positions(),  # cost = 10x10 + 5x20 = 200
+    }
+    prior_row = {"total_value": "310", "holdings_value": "210"}
+    cd = analytics.cash_drag_metrics(snapshot, prior_row)
+    assert cd["cash_weight_pct"] == pytest.approx(100.0 / 320.0 * 100)
+    assert cd["sleeve_cum_return_pct"] == pytest.approx(10.0)
+    assert cd["cum_drag_pct"] == pytest.approx(20.0 / 3 - 10.0)
+    assert cd["book_day_return_pct"] == pytest.approx((320.0 / 310.0 - 1) * 100)
+    assert cd["sleeve_day_return_pct"] == pytest.approx((220.0 / 210.0 - 1) * 100)
+    assert cd["day_drag_pct"] == pytest.approx(
+        cd["book_day_return_pct"] - cd["sleeve_day_return_pct"]
+    )
+
+
+def test_cash_drag_no_prior_row():
+    snapshot = {
+        "cash": 100.0, "holdings_value": 220.0, "total_value": 320.0,
+        "total_pnl_pct": 6.6667, "positions": _positions(),
+    }
+    cd = analytics.cash_drag_metrics(snapshot, None)
+    assert cd["sleeve_cum_return_pct"] == pytest.approx(10.0)
+    assert cd["book_day_return_pct"] is None
+    assert cd["day_drag_pct"] is None
+
+
+def test_load_history_rows_by_name(tmp_path):
+    f = tmp_path / "history.csv"
+    f.write_text(
+        "date_utc,total_value,cash,holdings_value,pnl_usd,pnl_pct\n"
+        "2026-05-20,999.86,159.98,839.88,-0.14,-0.01\n"
+    )
+    rows = analytics.load_history_rows(f)
+    assert rows[0]["holdings_value"] == "839.88"
+    assert analytics.load_history_rows(tmp_path / "nope.csv") == []
+
+
 # -------------------------------------------------------------- data quality
 
 def _hist(last_date: str, cols=("SPY", "NVDA")):
