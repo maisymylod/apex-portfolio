@@ -1,14 +1,14 @@
 :root {
-  --navy: #0d1738;
-  --navy-2: #142046;
-  --navy-3: #1c2a5a;
-  --lime: #d4f53d;
-  --lime-dim: #aac730;
-  --blue: #3030ff;
+  --navy: #000000;
+  --navy-2: #0d0d0d;
+  --navy-3: #1a1a1a;
+  --lime: #ffffff;
+  --lime-dim: #cccccc;
+  --blue: #888888;
   --white: #ffffff;
-  --muted: #a8b2cf;
-  --red: #ff6b6b;
-  --green: #4dffa5;
+  --muted: #999999;
+  --red: #888888;
+  --green: #ffffff;
   --card-radius: 14px;
 }
 
@@ -76,7 +76,7 @@ a:hover { text-decoration: underline; }
   letter-spacing: -0.02em;
   margin-bottom: 1.25rem;
 }
-.hl { color: var(--lime); }
+.hl { color: #fff; border-bottom: 2px solid rgba(255,255,255,0.45); padding-bottom: 1px; }
 
 .hero-lede {
   color: var(--muted);
@@ -212,13 +212,13 @@ a:hover { text-decoration: underline; }
   letter-spacing: -0.01em;
 }
 .pos-pnl { font-weight: 600; font-size: 14px; }
-.pos-pnl.up { color: #00a652; }
-.pos-pnl.down { color: #d23232; }
+.pos-pnl.up { color: #000; font-weight: 700; }
+.pos-pnl.down { color: #777; }
 
 .pos-thesis {
   font-size: 13px;
   line-height: 1.45;
-  color: #4a5570;
+  color: #555;
   margin-bottom: 0.9rem;
   min-height: 38px;
 }
@@ -228,8 +228,8 @@ a:hover { text-decoration: underline; }
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6c7691;
-  border-top: 1px solid #e8ecf3;
+  color: #666;
+  border-top: 1px solid #e5e5e5;
   padding-top: 0.6rem;
 }
 
@@ -399,12 +399,12 @@ a:hover { text-decoration: underline; }
   border-radius: 6px; padding: 0.6rem 0.75rem;
   border-left: 2px solid transparent;
 }
-.mc-cell.veto { border-left-color: var(--red); background: rgba(255,107,107,0.06); }
+.mc-cell.veto { border-left-color: var(--red); background: rgba(255,255,255,0.05); }
 .mc-val { font-size: 1.1rem; font-weight: 600; }
 .mc-lab { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
 .mc-veto { margin-top: 0.75rem; }
 .mc-veto-banner {
-  background: rgba(255,107,107,0.12);
+  background: rgba(255,255,255,0.08);
   border-left: 3px solid var(--red);
   padding: 0.6rem 0.8rem;
   font-size: 12px;
@@ -467,7 +467,7 @@ a:hover { text-decoration: underline; }
 .notes-body code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.88em;
-  background: rgba(212,245,61,0.10);
+  background: rgba(255,255,255,0.10);
   color: var(--lime);
   padding: 1px 6px;
   border-radius: 5px;
@@ -504,7 +504,7 @@ a:hover { text-decoration: underline; }
 
 .audit-card {
   background: var(--navy-2);
-  border: 1px solid rgba(212,245,61,0.18);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: var(--card-radius);
   padding: 1.75rem 2rem;
   margin: 2rem 0;
@@ -634,7 +634,7 @@ html, body {
 .section-num {
   background: transparent;
   color: var(--lime);
-  border: 1px solid rgba(212,245,61,0.35);
+  border: 1px solid rgba(255,255,255,0.35);
   border-radius: 6px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -660,7 +660,7 @@ html, body {
 .rule-chip::before { content: '--'; color: var(--lime); opacity: 0.6; margin-right: 0.4rem; }
 
 .notes-list strong { font-family: var(--mono); letter-spacing: -0.01em; }
-.notes-body code { border: 1px solid rgba(212,245,61,0.22); }
+.notes-body code { border: 1px solid rgba(255,255,255,0.22); }
 
 /* audit card -> console window */
 .audit-card { padding: 0; overflow: hidden; }
@@ -674,7 +674,7 @@ html, body {
 .audit-dots { display: flex; gap: 6px; }
 .audit-dots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.18); display: block; }
 .audit-dots i:first-child { background: var(--red); opacity: 0.8; }
-.audit-dots i:nth-child(2) { background: #f5c84b; opacity: 0.8; }
+.audit-dots i:nth-child(2) { background: #888888; opacity: 0.8; }
 .audit-dots i:last-child { background: var(--green); opacity: 0.8; }
 .audit-path {
   flex: 1; font-size: 11.5px; color: var(--muted);
@@ -682,9 +682,9 @@ html, body {
 }
 .audit-tag {
   margin-bottom: 0;
-  background: rgba(77,255,165,0.14);
+  background: rgba(255,255,255,0.12);
   color: var(--green);
-  border: 1px solid rgba(77,255,165,0.3);
+  border: 1px solid rgba(255,255,255,0.3);
   font-size: 10px;
   letter-spacing: 0.14em;
 }
