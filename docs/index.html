@@ -31,7 +31,7 @@
 
   <section class="hero" id="performance">
     <div class="hero-left">
-      <div class="hero-eyebrow">SVP Product / GeniusIQ inspired build</div>
+      <div class="hero-eyebrow">Autonomous paper-portfolio agent</div>
       <h1>An autonomous paper portfolio that mirrors <span class="hl">Situational Awareness Capital</span>.</h1>
       <p class="hero-lede">
         $1,000 starting capital. Positions inferred from the May 18 2026 13F and
@@ -61,45 +61,44 @@
   </section>
 
   <section class="band notes-band" id="notes">
-    <div class="notes-eyebrow"><span class="prompt">$</span> cat field-notes.md</div>
-    <h2 class="notes-head">I gave an AI <span class="hl">$1,000</span> and told it to think like Leopold Aschenbrenner.</h2>
+    <div class="notes-eyebrow">Overview</div>
+    <h2 class="notes-head">A $1,000 paper portfolio run by an autonomous agent.</h2>
 
     <div class="notes-body">
       <p>
-        No real broker, no real money. The whole book is one idea: take the
-        <em>Situational Awareness</em> thesis (transformative AI by ~2027, power
-        is the binding constraint) and the fund's actual May&nbsp;18 13F, size 13
-        names by conviction, and let an agent run it on autopilot. Call it
-        vibe&nbsp;investing for people who read the footnotes.
+        The portfolio holds 13 names inferred from Situational Awareness Capital's
+        May&nbsp;18 2026 13F and the situational-awareness.ai essays (transformative
+        AI by roughly 2027, power generation as the binding constraint). There is
+        no real broker and no real money. Positions are sized by thesis conviction.
       </p>
 
       <div class="rules-row">
-        <div class="rule-chip"><span class="rule-k">Rule 1</span> Mirror only. No discretionary picks beyond the published thesis and filing.</div>
-        <div class="rule-chip"><span class="rule-k">Rule 2</span> Mark to market every weekday. Fully reproducible. Nothing hand-tuned after the fact.</div>
+        <div class="rule-chip"><span class="rule-k">Constraint 1</span> Mirror only. No positions beyond the published thesis and filing.</div>
+        <div class="rule-chip"><span class="rule-k">Constraint 2</span> Marked to market every weekday. Reproducible, with no manual adjustment after the run.</div>
       </div>
 
       <p>
-        Here's what building it honestly actually taught me, in order:
+        A GitHub Action runs each weekday at 4:30pm ET. It pulls prices, marks the
+        book to market, computes realized and SPY-relative analytics, updates a
+        per-ticker conviction bias, and writes a journal entry. Three notes on how
+        the analytics are reported:
       </p>
 
       <ol class="notes-list">
         <li>
-          <strong>Absolute P&amp;L is a vanity metric.</strong> "Up 2%" means
-          nothing until you put SPY on the same axis. So the agent now computes
-          active return, beta, alpha, tracking error and information ratio every
-          run. Most of the "performance" evaporates the moment there's a benchmark
-          next to it.
+          <strong>Returns are reported against SPY.</strong> Absolute P&amp;L is
+          shown alongside active return, beta, alpha, tracking error and
+          information ratio, since absolute return alone is not informative for a
+          portfolio this young.
         </li>
         <li>
-          <strong>Every Sharpe you see on a young book is simulated.</strong> The
-          slick 10,000-path Monte Carlo number is a <em>model</em>, not a track
-          record. It's now labelled SIMULATED everywhere so I don't lie to myself
-          later.
+          <strong>Simulated metrics are labelled.</strong> The Sharpe and VaR
+          figures from the 10,000-path Monte Carlo are model output, not a realized
+          track record, and are marked SIMULATED wherever they appear.
         </li>
         <li>
-          <strong>The part I can't stop thinking about happened before any of
-          that.</strong> A second pass audited the first build — and caught it
-          inventing returns by accident.
+          <strong>The pipeline was audited for data-integrity bugs.</strong> One
+          example is below.
         </li>
       </ol>
 
@@ -110,36 +109,30 @@
           <span class="audit-tag">RESOLVED</span>
         </div>
         <p>
-          When a single ticker's price failed to download, the original pipeline
-          didn't error. It quietly <em>dropped that position from the total</em> —
-          its market value just vanished — and wrote the resulting fake drop into
-          the permanent history file as a real loss. Phantom P&amp;L, invented by
-          accident, baked into the record forever.
+          When a ticker's price failed to download, the original pipeline did not
+          raise an error. It dropped that position from the total, so its market
+          value disappeared and the resulting drop was recorded in the history file
+          as a real loss.
         </p>
         <p>
-          The builder didn't "know" it was wrong. The audit pass (now in
-          <code>DISCOVERY.md</code>, Gap&nbsp;G) caught it, and the next version
-          shipped a data-quality guard: a missing price marks the day
-          <code>degraded</code> instead of silently rewriting the book. Same audit
-          found the learning loop's docstring describing SPY-relative math the code
-          never actually did.
-        </p>
-        <p class="audit-kicker">
-          The agent cheated. The audit caught it. Neither of them knew anything was
-          wrong.
+          A later audit pass (<code>DISCOVERY.md</code>, Gap&nbsp;G) identified
+          this. The current version marks the affected day <code>degraded</code>
+          rather than silently rewriting the book. The same audit found the
+          learning loop's docstring describing SPY-relative math that the code did
+          not implement.
         </p>
       </div>
 
-      <p class="notes-q-lead">Three questions I don't have answers to:</p>
+      <p class="notes-q-lead">Open questions</p>
       <ul class="question-list">
-        <li>Is intelligence even the bottleneck in markets, or does the market just eat it for breakfast?</li>
-        <li>If a pipeline can invent fake P&amp;L by accident, how much of the "AI trading" out there is exactly one day psychic too?</li>
-        <li>My agent needed an auditor to stay honest. Who audits yours?</li>
+        <li>Whether model intelligence provides a measurable edge in liquid markets.</li>
+        <li>How much reported AI-trading performance reflects similar lookahead or data-integrity errors.</li>
+        <li>How the conviction-bias loop should be validated against realized outcomes.</li>
       </ul>
 
       <p class="bet-line">
-        The scoreboard below updates itself every weekday at 4:30pm ET. The only
-        bet that matters: does APEX beat SPY from here? <span class="hl">Watch it live.</span>
+        Live figures update every weekday at 4:30pm ET. Performance relative to SPY
+        is shown below.
       </p>
     </div>
   </section>

@@ -82,7 +82,7 @@ function renderChart(history) {
     svg.appendChild(line);
     const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     label.setAttribute('x', PAD_L - 8); label.setAttribute('y', yy + 4);
-    label.setAttribute('fill', '#a8b2cf'); label.setAttribute('font-size', '10');
+    label.setAttribute('fill', '#999999'); label.setAttribute('font-size', '10');
     label.setAttribute('text-anchor', 'end'); label.setAttribute('font-family', 'Inter');
     label.textContent = `$${v.toFixed(0)}`;
     svg.appendChild(label);
@@ -93,7 +93,7 @@ function renderChart(history) {
     const bl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     bl.setAttribute('x1', PAD_L); bl.setAttribute('x2', W - PAD_R);
     bl.setAttribute('y1', y(1000)); bl.setAttribute('y2', y(1000));
-    bl.setAttribute('stroke', '#a8b2cf'); bl.setAttribute('stroke-dasharray', '4 4');
+    bl.setAttribute('stroke', '#999999'); bl.setAttribute('stroke-dasharray', '4 4');
     bl.setAttribute('stroke-width', '1');
     svg.appendChild(bl);
   }
@@ -104,7 +104,7 @@ function renderChart(history) {
       + ` L ${x(history.length - 1)} ${y(min)} L ${x(0)} ${y(min)} Z`;
     const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     area.setAttribute('d', areaPath);
-    area.setAttribute('fill', 'rgba(212, 245, 61, 0.12)');
+    area.setAttribute('fill', 'rgba(255,255,255,0.08)');
     svg.appendChild(area);
   }
 
@@ -113,7 +113,7 @@ function renderChart(history) {
   const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   line.setAttribute('d', path);
   line.setAttribute('fill', 'none');
-  line.setAttribute('stroke', '#d4f53d');
+  line.setAttribute('stroke', '#ffffff');
   line.setAttribute('stroke-width', '2.5');
   line.setAttribute('stroke-linejoin', 'round');
   svg.appendChild(line);
@@ -123,8 +123,8 @@ function renderChart(history) {
     const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     c.setAttribute('cx', x(i)); c.setAttribute('cy', y(h.total));
     c.setAttribute('r', 4);
-    c.setAttribute('fill', '#0d1738');
-    c.setAttribute('stroke', '#d4f53d');
+    c.setAttribute('fill', '#000000');
+    c.setAttribute('stroke', '#ffffff');
     c.setAttribute('stroke-width', '2');
     svg.appendChild(c);
   });
@@ -134,7 +134,7 @@ function renderChart(history) {
   labelIdx.forEach(i => {
     const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     t.setAttribute('x', x(i)); t.setAttribute('y', H - 12);
-    t.setAttribute('fill', '#a8b2cf'); t.setAttribute('font-size', '10');
+    t.setAttribute('fill', '#999999'); t.setAttribute('font-size', '10');
     t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-family', 'Inter');
     t.textContent = history[i].date.slice(5); // MM-DD
     svg.appendChild(t);
@@ -356,7 +356,7 @@ function renderQuantChart(history) {
   if (withMC.length === 0) {
     const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     t.setAttribute('x', 400); t.setAttribute('y', 120);
-    t.setAttribute('fill', '#a8b2cf'); t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('fill', '#999999'); t.setAttribute('text-anchor', 'middle');
     t.setAttribute('font-family', 'Inter'); t.setAttribute('font-size', '12');
     t.textContent = 'Awaiting first MC-enabled run...';
     svg.appendChild(t);
@@ -377,14 +377,14 @@ function renderQuantChart(history) {
     const lim = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     lim.setAttribute('x1', PAD_L); lim.setAttribute('x2', W - PAD_R);
     lim.setAttribute('y1', yVar(80)); lim.setAttribute('y2', yVar(80));
-    lim.setAttribute('stroke', '#ff6b6b'); lim.setAttribute('stroke-dasharray', '4 4');
+    lim.setAttribute('stroke', '#666666'); lim.setAttribute('stroke-dasharray', '4 4');
     lim.setAttribute('stroke-width', '1');
     svg.appendChild(lim);
   }
 
   const varPath = withMC.map((h, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${yVar(h.var95)}`).join(' ');
   const shPath = withMC.map((h, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${ySh(h.sharpe)}`).join(' ');
-  [['#d4f53d', varPath], ['#3030ff', shPath]].forEach(([stroke, d]) => {
+  [['#ffffff', varPath], ['#888888', shPath]].forEach(([stroke, d]) => {
     const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     p.setAttribute('d', d);
     p.setAttribute('fill', 'none');
@@ -399,7 +399,7 @@ function renderQuantChart(history) {
     const yy = yVar(v);
     const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     t.setAttribute('x', PAD_L - 8); t.setAttribute('y', yy + 4);
-    t.setAttribute('fill', '#d4f53d'); t.setAttribute('font-size', '10');
+    t.setAttribute('fill', '#ffffff'); t.setAttribute('font-size', '10');
     t.setAttribute('text-anchor', 'end'); t.setAttribute('font-family', 'Inter');
     t.textContent = `$${v.toFixed(0)}`;
     svg.appendChild(t);
@@ -407,7 +407,7 @@ function renderQuantChart(history) {
     const yys = ySh(s);
     const t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     t2.setAttribute('x', W - PAD_R + 8); t2.setAttribute('y', yys + 4);
-    t2.setAttribute('fill', '#a0a0ff'); t2.setAttribute('font-size', '10');
+    t2.setAttribute('fill', '#bbbbbb'); t2.setAttribute('font-size', '10');
     t2.setAttribute('text-anchor', 'start'); t2.setAttribute('font-family', 'Inter');
     t2.textContent = s.toFixed(2);
     svg.appendChild(t2);
@@ -417,7 +417,7 @@ function renderQuantChart(history) {
   labelIdx.forEach(i => {
     const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     t.setAttribute('x', x(i)); t.setAttribute('y', H - 12);
-    t.setAttribute('fill', '#a8b2cf'); t.setAttribute('font-size', '10');
+    t.setAttribute('fill', '#999999'); t.setAttribute('font-size', '10');
     t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-family', 'Inter');
     t.textContent = withMC[i].date.slice(5);
     svg.appendChild(t);
