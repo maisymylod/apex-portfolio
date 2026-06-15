@@ -441,6 +441,119 @@ a:hover { text-decoration: underline; }
 }
 .legend-dot.blue { background: var(--blue); }
 
+/* Field notes / manifesto */
+.notes-band {
+  background: linear-gradient(180deg, var(--navy-2) 0%, var(--navy) 100%);
+}
+.notes-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--lime);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.notes-head {
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+  margin-bottom: 2rem;
+}
+.notes-body { max-width: 70ch; }
+.notes-body p { color: var(--muted); font-size: 16px; margin-bottom: 1.25rem; }
+.notes-body em { color: var(--white); font-style: normal; font-weight: 500; }
+.notes-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em;
+  background: rgba(212,245,61,0.10);
+  color: var(--lime);
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+.rules-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.75rem 0;
+}
+.rule-chip {
+  background: var(--navy-2);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 4px solid var(--lime);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  font-size: 14px;
+  color: var(--white);
+}
+.rule-k {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lime);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.notes-list { margin: 0 0 1.5rem 1.2rem; }
+.notes-list li { color: var(--muted); font-size: 16px; margin-bottom: 1rem; padding-left: 0.4rem; }
+.notes-list strong { color: var(--white); font-weight: 600; }
+
+.audit-card {
+  background: var(--navy-2);
+  border: 1px solid rgba(212,245,61,0.18);
+  border-radius: var(--card-radius);
+  padding: 1.75rem 2rem;
+  margin: 2rem 0;
+}
+.audit-tag {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--navy);
+  background: var(--lime);
+  padding: 3px 10px;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+}
+.audit-card p { font-size: 15px; margin-bottom: 1rem; }
+.audit-card p:last-child { margin-bottom: 0; }
+.audit-kicker {
+  color: var(--white) !important;
+  font-weight: 600;
+  font-size: 16px !important;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 1rem;
+}
+
+.notes-q-lead { color: var(--white) !important; font-weight: 600; margin-bottom: 0.75rem !important; }
+.question-list { list-style: none; margin: 0 0 1.75rem; }
+.question-list li {
+  color: var(--muted);
+  font-size: 16px;
+  padding: 0.6rem 0 0.6rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+}
+.question-list li::before {
+  content: '?';
+  position: absolute;
+  left: 0;
+  color: var(--lime);
+  font-weight: 700;
+}
+.bet-line {
+  font-size: 17px !important;
+  color: var(--white) !important;
+  font-weight: 500;
+  margin-bottom: 0 !important;
+}
+
 footer {
   padding: 2rem 3rem;
   border-top: 1px solid rgba(255,255,255,0.08);
@@ -471,5 +584,130 @@ footer {
   .timeline-row { grid-template-columns: 90px 1fr; }
   .timeline-link { grid-column: 1 / -1; }
   .quant-wrap { grid-template-columns: 1fr; }
+  .notes-head { font-size: 1.6rem; }
+  .rules-row { grid-template-columns: 1fr; }
+  .audit-card { padding: 1.25rem; }
   footer { flex-direction: column; gap: 1rem; padding: 1.5rem 1.25rem; text-align: center; }
+}
+
+/* ============================================================
+   Technical instrument layer — monospace data/labels/chrome,
+   tabular figures, hairline grid. Appended so it overrides.
+   ============================================================ */
+:root { --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* faint engineering grid behind everything */
+html, body {
+  background-color: var(--navy);
+  background-image:
+    linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-attachment: fixed;
+}
+
+/* every number is tabular + lined up */
+.stat-value, .risk-status, .mc-val, .bl-row, .bl-delta, .pos-ticker,
+.pos-pnl, .pos-meta, .timeline-date, .sector-row, .opt-greeks,
+.stat-label, .quant-meta, .mc-lab, .risk-label {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* mono chrome: brand, nav, eyebrows, section indices, all the small
+   uppercase data labels, badges, tickers, status read-outs */
+.brand-name, .brand-sub, .logo-mark, .nav a,
+.hero-eyebrow, .section-num, .section-sub,
+.stat-value, .stat-label,
+.risk-status, .risk-label, .sector-row, .sector-list h4, .flag-list h4, .flag,
+.timeline-date, .timeline-link,
+.thesis-num,
+.quant-card-head h3, .quant-meta, .mc-val, .mc-lab, .bl-tk, .bl-delta,
+.opt-greeks, .opt-trig, .quant-meta.status-active, .quant-chart-wrap h3,
+.pos-ticker, .pos-pnl, .pos-meta,
+.chart-foot, .footer-line, .footer-meta,
+.notes-eyebrow, .rule-k, .audit-tag, .audit-path, .question-list li::before {
+  font-family: var(--mono);
+}
+
+/* section indices read like array slots: [01] */
+.section-num {
+  background: transparent;
+  color: var(--lime);
+  border: 1px solid rgba(212,245,61,0.35);
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.section-num::before { content: '['; opacity: 0.5; }
+.section-num::after  { content: ']'; opacity: 0.5; }
+
+/* eyebrows as instrument captions */
+.hero-eyebrow, .notes-eyebrow { font-size: 12px; letter-spacing: 0.12em; }
+.brand-name { letter-spacing: 0.12em; }
+.nav a { font-size: 12px; letter-spacing: 0.02em; text-transform: lowercase; }
+.nav a::before { content: '#'; opacity: 0.45; }
+
+/* big readouts a touch tighter so mono digits feel engineered */
+.stat-value { letter-spacing: -0.01em; }
+.section-sub { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0; }
+
+/* ---- Field notes: terminal treatment ---- */
+.notes-eyebrow { color: var(--green); }
+.notes-eyebrow .prompt { color: var(--lime); margin-right: 0.5rem; font-weight: 700; }
+
+.rule-chip { font-family: var(--mono); font-size: 13px; }
+.rule-chip::before { content: '--'; color: var(--lime); opacity: 0.6; margin-right: 0.4rem; }
+
+.notes-list strong { font-family: var(--mono); letter-spacing: -0.01em; }
+.notes-body code { border: 1px solid rgba(212,245,61,0.22); }
+
+/* audit card -> console window */
+.audit-card { padding: 0; overflow: hidden; }
+.audit-bar {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: rgba(0,0,0,0.28);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 0.7rem 1rem;
+  font-family: var(--mono);
+}
+.audit-dots { display: flex; gap: 6px; }
+.audit-dots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.18); display: block; }
+.audit-dots i:first-child { background: var(--red); opacity: 0.8; }
+.audit-dots i:nth-child(2) { background: #f5c84b; opacity: 0.8; }
+.audit-dots i:last-child { background: var(--green); opacity: 0.8; }
+.audit-path {
+  flex: 1; font-size: 11.5px; color: var(--muted);
+  letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.audit-tag {
+  margin-bottom: 0;
+  background: rgba(77,255,165,0.14);
+  color: var(--green);
+  border: 1px solid rgba(77,255,165,0.3);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+.audit-card > p { padding: 0 2rem; }
+.audit-card > p:first-of-type { padding-top: 1.5rem; }
+.audit-card > .audit-kicker {
+  margin: 1.25rem 0 0;
+  padding: 1.1rem 2rem;
+  background: rgba(0,0,0,0.22);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-family: var(--mono);
+  font-size: 14px !important;
+}
+.audit-card > .audit-kicker::before { content: '// '; color: var(--lime); opacity: 0.7; }
+
+/* questions as shell prompts */
+.notes-q-lead { font-family: var(--mono); }
+.question-list li { font-family: var(--mono); font-size: 14px; padding-left: 1.6rem; }
+.question-list li::before { content: '>'; font-weight: 700; }
+
+.bet-line { font-family: var(--mono); font-size: 15px !important; }
+
+@media (max-width: 900px) {
+  html, body { background-size: 28px 28px; }
+  .audit-card > p, .audit-card > .audit-kicker { padding-left: 1.25rem; padding-right: 1.25rem; }
 }
