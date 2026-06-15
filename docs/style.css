@@ -17,11 +17,13 @@
 html, body {
   background: var(--navy);
   color: var(--white);
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   font-weight: 400;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
+
+svg, svg text { font-family: 'Times New Roman', Times, serif; }
 
 a { color: var(--lime); text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -465,7 +467,7 @@ a:hover { text-decoration: underline; }
 .notes-body p { color: var(--muted); font-size: 16px; margin-bottom: 1.25rem; }
 .notes-body em { color: var(--white); font-style: normal; font-weight: 500; }
 .notes-body code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: 'Times New Roman', Times, serif;
   font-size: 0.88em;
   background: rgba(255,255,255,0.10);
   color: var(--lime);
@@ -594,7 +596,7 @@ footer {
    Technical instrument layer — monospace data/labels/chrome,
    tabular figures, hairline grid. Appended so it overrides.
    ============================================================ */
-:root { --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+:root { --mono: 'Times New Roman', Times, serif; }
 
 /* faint engineering grid behind everything */
 html, body {
