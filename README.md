@@ -13,7 +13,7 @@ entry to `journal/`, and refreshes the live P&L table below.
 ## Live P&L
 
 <!-- LIVE_PNL_START -->
-**As of 2026-07-02 (UTC)** — Day 35
+**As of 2026-07-03 (UTC)** — Day 36
 
 | Total value | P&L | P&L % | Cash | Holdings |
 |-------------|-----|-------|------|----------|
