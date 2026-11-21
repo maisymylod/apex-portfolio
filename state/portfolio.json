@@ -95,55 +95,55 @@
     }
   },
   "inception_date": "2026-05-20",
-  "last_run": "2026-11-20T01:51:27.813805+00:00",
+  "last_run": "2026-11-21T01:40:07.246622+00:00",
   "bl_weights": {
-    "BE": 0.1532496811047614,
-    "CEG": 0.07681286027867182,
-    "MSFT": 0.2581588562522746,
-    "VST": 0.019910702660293263,
-    "GEV": 0.0854608100894017,
-    "GOOG": 0.18496951577642493,
-    "NVDA": 0.09683139675965569,
-    "META": 0.023325160241852938,
-    "CLSK": 0.04565180271779316,
-    "RIOT": 0.05562921411887065,
+    "BE": 0.15483635450991973,
+    "CEG": 0.08368372467408737,
+    "MSFT": 0.2583372801637565,
+    "VST": 0.014171038637747928,
+    "GEV": 0.08645054991302546,
+    "GOOG": 0.18507321366195392,
+    "NVDA": 0.08833351242747514,
+    "META": 0.024913333769817535,
+    "CLSK": 0.0480138519488351,
+    "RIOT": 0.05618714029338118,
     "TSM": 0.0,
     "AVGO": 0.0
   },
-  "bl_run_ts": "2026-11-20T01:51:27.063597+00:00",
+  "bl_run_ts": "2026-11-21T01:40:06.698359+00:00",
   "mc_report": {
-    "var_1d_usd": 25.673199256071932,
-    "cvar_1d_usd": 32.00217201163904,
-    "median_max_drawdown": -0.29590147966324587,
-    "sim_sharpe": 0.48761496520852504,
-    "sim_return_ann": 0.18840145191454805,
-    "sim_vol_ann": 0.3863733998278324,
-    "p_ruin": 0.5401,
-    "ruin_threshold_usd": 578.337239620266,
+    "var_1d_usd": 25.250045579984242,
+    "cvar_1d_usd": 31.416333962028656,
+    "median_max_drawdown": -0.2979639387807666,
+    "sim_sharpe": 0.48849271993602267,
+    "sim_return_ann": 0.19022909306213323,
+    "sim_vol_ann": 0.3894205282876013,
+    "p_ruin": 0.5555,
+    "ruin_threshold_usd": 566.2471594404697,
     "n_paths": 10000,
     "horizon_days": 252,
     "veto": true,
     "drift_source": "bl",
     "veto_flags": [
-      "Median MaxDD: -29.6% < -25%",
-      "P(ruin < $578): 54.0% > 15%"
+      "Median MaxDD: -29.8% < -25%",
+      "P(ruin < $566): 55.5% > 15%"
     ]
   },
   "options_overlay": {
     "ticker": "NVDA",
-    "spot": 150.9600067138672,
-    "strike": 135.86,
-    "sigma": 0.4656391732233154,
+    "spot": 145.97999572753906,
+    "strike": 131.38,
+    "sigma": 0.4679890495243475,
     "tenor_days": 60,
-    "put_value_per_share": 6.271696813070186,
-    "delta": -0.26611442700657395,
-    "gamma": 0.009569885106726147,
-    "theta_per_day": -0.05904887809750148,
-    "vega": 0.2417857802237824,
-    "notional_hedge_usd": 1.3998427286772654,
+    "put_value_per_share": 6.120420837866455,
+    "delta": -0.26678944067242455,
+    "gamma": 0.009859290616186067,
+    "theta_per_day": -0.0574787488192997,
+    "vega": 0.23410935162815452,
+    "notional_hedge_usd": 1.3660779310117928,
     "max_spend_usd": 30.0,
     "status": "MONITORING",
-    "nvda_weight_pct": 4.078241868785949,
+    "nvda_weight_pct": 4.027907981915189,
     "triggers": {
       "nvda_weight_gt_15pct": false,
       "realized_vol_gt_35pct": true,
@@ -152,15 +152,15 @@
     }
   },
   "realized": {
-    "n_obs": 126,
-    "cum_return_pct": -17.380394339961992,
-    "ann_return_pct": -31.740007605798148,
-    "vol_ann_pct": 32.50618077762539,
-    "sharpe": -1.150122690463497,
-    "sortino": -1.5250041735859816,
-    "calmar": -1.552352611107467,
-    "current_drawdown_pct": -20.446390451944062,
-    "max_drawdown_pct": -20.446390451944062,
+    "n_obs": 127,
+    "cum_return_pct": -19.107548651361473,
+    "ann_return_pct": -34.34523358469876,
+    "vol_ann_pct": 32.494489638970904,
+    "sharpe": -1.2702212287196648,
+    "sortino": -1.6779411910692315,
+    "calmar": -1.553418692642847,
+    "current_drawdown_pct": -22.109450431722866,
+    "max_drawdown_pct": -22.109450431722866,
     "underwater": [
       {
         "date": "2026-05-20",
@@ -664,19 +664,23 @@
       },
       {
         "date": "2026-11-20",
-        "drawdown_pct": -20.446390451944062
+        "drawdown_pct": -20.44601074585475
+      },
+      {
+        "date": "2026-11-21",
+        "drawdown_pct": -22.109450431722866
       }
     ],
     "trailing": {
       "window_runs": 21,
-      "return_pct": -9.914072684013009,
-      "vol_ann_pct": 39.6574057647137,
-      "sharpe": -3.0761021331563407
+      "return_pct": -11.18820048896223,
+      "vol_ann_pct": 40.05224654187329,
+      "sharpe": -3.4666191570200393
     }
   },
   "benchmark": {
     "source": "SPY (adjusted close)",
-    "asof": "2026-11-20T01:51:25.538588+00:00",
+    "asof": "2026-11-21T01:40:05.603136+00:00",
     "curve": [
       {
         "date": "2026-05-20",
@@ -696,7 +700,7 @@
       },
       {
         "date": "2026-05-27",
-        "value": 1012.4250347190412
+        "value": 1012.424951961062
       },
       {
         "date": "2026-05-28",
@@ -708,7 +712,7 @@
       },
       {
         "date": "2026-06-01",
-        "value": 1023.3255019457644
+        "value": 1023.325419187785
       },
       {
         "date": "2026-06-02",
@@ -732,7 +736,7 @@
       },
       {
         "date": "2026-06-09",
-        "value": 994.3338921979666
+        "value": 994.3339749559459
       },
       {
         "date": "2026-06-10",
@@ -1185,127 +1189,131 @@
       {
         "date": "2026-11-18",
         "value": 990.0831113557437
+      },
+      {
+        "date": "2026-11-19",
+        "value": 970.652944731656
       }
     ],
-    "n_obs": 125,
-    "port_cum_return_pct": -17.380394339961992,
-    "bench_cum_return_pct": -0.9916888644256328,
-    "active_return_cum_pct": -16.38870547553636,
-    "active_return_1d_pct": -0.17808346317008672,
-    "beta": 1.5677379198174282,
-    "alpha_ann_pct": -28.40213949684986,
-    "tracking_error_ann_pct": 24.599984831457405,
-    "info_ratio": -1.2799720528267362,
-    "up_capture": 1.4924238514336536,
-    "down_capture": 1.660440021727864
+    "n_obs": 126,
+    "port_cum_return_pct": -19.107548651361473,
+    "bench_cum_return_pct": -2.9347055268344024,
+    "active_return_cum_pct": -16.17284312452707,
+    "active_return_1d_pct": -2.0909569733254307,
+    "beta": 1.5341623115866556,
+    "alpha_ann_pct": -26.49809503617398,
+    "tracking_error_ann_pct": 24.627096478902963,
+    "info_ratio": -1.278810866557621,
+    "up_capture": 1.4924235448980094,
+    "down_capture": 1.6144811360178086
   },
   "attribution": {
     "positions": [
       {
         "ticker": "MSFT",
         "sector": "hyperscaler",
-        "weight_pct": 14.629864554103806,
-        "cum_pnl_usd": 20.882407580566408,
-        "cum_contribution_pct": 2.088240758056641,
+        "weight_pct": 14.648553124748684,
+        "cum_pnl_usd": 18.50678064575196,
+        "cum_contribution_pct": 1.850678064575196,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "META",
         "sector": "hyperscaler",
-        "weight_pct": 6.15487692014344,
-        "cum_pnl_usd": 0.8769754028320307,
-        "cum_contribution_pct": 0.08769754028320306,
+        "weight_pct": 6.080684509239523,
+        "cum_pnl_usd": -0.7862274169921903,
+        "cum_contribution_pct": -0.07862274169921904,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "TSM",
         "sector": "semi",
-        "weight_pct": 4.35830759871968,
-        "cum_pnl_usd": -3.9829245758056686,
-        "cum_contribution_pct": -0.39829245758056686,
+        "weight_pct": 4.3221012657494375,
+        "cum_pnl_usd": -5.028553454589847,
+        "cum_contribution_pct": -0.5028553454589847,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "AVGO",
         "sector": "semi",
-        "weight_pct": 3.0725617632709703,
-        "cum_pnl_usd": -4.631820437622071,
-        "cum_contribution_pct": -0.4631820437622071,
+        "weight_pct": 3.0725740347830675,
+        "cum_pnl_usd": -5.162400000000002,
+        "cum_contribution_pct": -0.5162400000000001,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "CEG",
         "sector": "power",
-        "weight_pct": 11.353016728212344,
-        "cum_pnl_usd": -6.211808715820311,
-        "cum_contribution_pct": -0.6211808715820311,
+        "weight_pct": 11.12275719973262,
+        "cum_pnl_usd": -10.035275665283208,
+        "cum_contribution_pct": -1.0035275665283208,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "RIOT",
         "sector": "miners",
-        "weight_pct": 3.6901845964838254,
-        "cum_pnl_usd": -9.510835892677306,
-        "cum_contribution_pct": -0.9510835892677306,
+        "weight_pct": 3.663592058438319,
+        "cum_pnl_usd": -10.363301275253296,
+        "cum_contribution_pct": -1.0363301275253296,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "VST",
         "sector": "power",
-        "weight_pct": 8.460198818520102,
-        "cum_pnl_usd": -10.10228660278321,
-        "cum_contribution_pct": -1.0102286602783208,
+        "weight_pct": 8.542439955426968,
+        "cum_pnl_usd": -10.898224772644042,
+        "cum_contribution_pct": -1.0898224772644043,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "NVDA",
         "sector": "semi",
-        "weight_pct": 4.078241868785949,
-        "cum_pnl_usd": -16.301409411621094,
-        "cum_contribution_pct": -1.6301409411621095,
+        "weight_pct": 4.027907981915189,
+        "cum_pnl_usd": -17.41294786376953,
+        "cum_contribution_pct": -1.7412947863769532,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "GEV",
         "sector": "power",
-        "weight_pct": 7.243685957029373,
-        "cum_pnl_usd": -20.184104919433594,
-        "cum_contribution_pct": -2.018410491943359,
+        "weight_pct": 7.245633095960602,
+        "cum_pnl_usd": -21.41945037841797,
+        "cum_contribution_pct": -2.141945037841797,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "GOOG",
         "sector": "hyperscaler",
-        "weight_pct": 7.045930815102275,
-        "cum_pnl_usd": -21.794504745483394,
-        "cum_contribution_pct": -2.1794504745483394,
+        "weight_pct": 6.985530388467037,
+        "cum_pnl_usd": -23.50003958129882,
+        "cum_contribution_pct": -2.350003958129882,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "CLSK",
         "sector": "miners",
-        "weight_pct": 1.89269858783912,
-        "cum_pnl_usd": -24.362617980289457,
-        "cum_contribution_pct": -2.4362617980289456,
+        "weight_pct": 1.8179328403402468,
+        "cum_pnl_usd": -25.294314692115783,
+        "cum_contribution_pct": -2.5294314692115782,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       },
       {
         "ticker": "BE",
         "sector": "power",
-        "weight_pct": 8.656653785921337,
-        "cum_pnl_usd": -48.48097382965088,
-        "cum_contribution_pct": -4.848097382965088,
+        "weight_pct": 8.693074827493604,
+        "cum_pnl_usd": -49.68149278717041,
+        "cum_contribution_pct": -4.968149278717041,
         "day_pnl_usd": 0.0,
         "day_contribution_pct": 0.0
       }
@@ -1313,209 +1321,209 @@
     "sectors": [
       {
         "sector": "hyperscaler",
-        "weight_pct": 27.830672289349522,
-        "cum_contribution_pct": -0.003512176208495532,
+        "weight_pct": 27.714768022455242,
+        "cum_contribution_pct": -0.5779486352539054,
         "day_contribution_pct": 0.0
       },
       {
         "sector": "semi",
-        "weight_pct": 11.5091112307766,
-        "cum_contribution_pct": -2.4916154425048838,
+        "weight_pct": 11.422583282447693,
+        "cum_contribution_pct": -2.760390131835938,
         "day_contribution_pct": 0.0
       },
       {
         "sector": "miners",
-        "weight_pct": 5.582883184322945,
-        "cum_contribution_pct": -3.3873453872966763,
+        "weight_pct": 5.481524898778566,
+        "cum_contribution_pct": -3.565761596736908,
         "day_contribution_pct": 0.0
       },
       {
         "sector": "power",
-        "weight_pct": 35.71355528968316,
-        "cum_contribution_pct": -8.4979174067688,
+        "weight_pct": 35.60390507861379,
+        "cum_contribution_pct": -9.203444360351563,
         "day_contribution_pct": 0.0
       }
     ],
     "cash_drag": {
       "cash_usd": 159.9827702933311,
-      "cash_weight_pct": 19.363778005867754,
-      "sleeve_cum_return_pct": -17.753191639129383,
-      "book_cum_return_pct": -17.380394339961995,
-      "cum_drag_pct": 0.372797299167388,
-      "sleeve_day_return_pct": -0.22116756173540253,
-      "book_day_return_pct": -0.17808346317008672,
-      "day_drag_pct": 0.04308409856531581,
-      "bench_cum_return_pct": -0.9916888644256328,
-      "bench_day_return_pct": -0.305825764145673
+      "cash_weight_pct": 19.777218717704702,
+      "sleeve_cum_return_pct": -19.88543566036096,
+      "book_cum_return_pct": -19.10754865136147,
+      "cum_drag_pct": 0.7778870089994925,
+      "sleeve_day_return_pct": -2.59201405066658,
+      "book_day_return_pct": -2.0909569733254307,
+      "day_drag_pct": 0.5010570773411493,
+      "bench_cum_return_pct": -2.9347055268344024,
+      "bench_day_return_pct": -1.962478341589069
     },
     "excluded_from_mark": [
       "BITF"
     ],
     "day_attributed_pct": 0.0,
-    "day_residual_pct": -0.17808346317008672,
-    "asof": "2026-11-20T01:51:25.538588+00:00"
+    "day_residual_pct": -2.0909569733254307,
+    "asof": "2026-11-21T01:40:05.603136+00:00"
   },
   "risk_decomposition": {
     "positions": [
       {
         "ticker": "BE",
-        "weight_pct": 10.735440688864701,
-        "vol_ann_pct": 98.95205752926326,
-        "component_var_1d_usd": 6.491463086764536,
-        "marginal_var_1d_usd_per_pp": 0.6046759769720291,
-        "risk_contribution_pct": 24.327951448553115
+        "weight_pct": 10.836167343667146,
+        "vol_ann_pct": 98.97446019464724,
+        "component_var_1d_usd": 6.3592447125722,
+        "marginal_var_1d_usd_per_pp": 0.5868536827542312,
+        "risk_contribution_pct": 24.265492172324144
       },
       {
         "ticker": "CEG",
-        "weight_pct": 14.079301395145333,
-        "vol_ann_pct": 54.4853033291408,
-        "component_var_1d_usd": 4.041423067838655,
-        "marginal_var_1d_usd_per_pp": 0.28704713070722193,
-        "risk_contribution_pct": 15.145976009307574
+        "weight_pct": 13.864836174892565,
+        "vol_ann_pct": 55.10735630139115,
+        "component_var_1d_usd": 3.9397051341926344,
+        "marginal_var_1d_usd_per_pp": 0.2841508608177379,
+        "risk_contribution_pct": 15.033056348031081
       },
       {
         "ticker": "VST",
-        "weight_pct": 10.491809523436922,
-        "vol_ann_pct": 63.349217604711306,
-        "component_var_1d_usd": 3.696781536775493,
-        "marginal_var_1d_usd_per_pp": 0.3523492805047128,
-        "risk_contribution_pct": 13.854368505299023
+        "weight_pct": 10.648396651029895,
+        "vol_ann_pct": 63.35322402227847,
+        "component_var_1d_usd": 3.641419453096001,
+        "marginal_var_1d_usd_per_pp": 0.3419688026688797,
+        "risk_contribution_pct": 13.894863184076073
       },
       {
         "ticker": "GEV",
-        "weight_pct": 8.983166346206655,
-        "vol_ann_pct": 57.569086385581336,
-        "component_var_1d_usd": 2.8390514758252468,
-        "marginal_var_1d_usd_per_pp": 0.3160412894974499,
-        "risk_contribution_pct": 10.639867398251598
+        "weight_pct": 9.031889670421675,
+        "vol_ann_pct": 57.313358918408674,
+        "component_var_1d_usd": 2.77802283834169,
+        "marginal_var_1d_usd_per_pp": 0.3075793593271375,
+        "risk_contribution_pct": 10.600329832416813
       },
       {
         "ticker": "RIOT",
-        "weight_pct": 4.576336174024069,
-        "vol_ann_pct": 92.32330387108983,
-        "component_var_1d_usd": 1.8719265409846062,
-        "marginal_var_1d_usd_per_pp": 0.4090448056700742,
-        "risk_contribution_pct": 7.015388887781461
+        "weight_pct": 4.566772679628913,
+        "vol_ann_pct": 92.26385637303223,
+        "component_var_1d_usd": 1.8295371467377584,
+        "marginal_var_1d_usd_per_pp": 0.40061927209532633,
+        "risk_contribution_pct": 6.981115104026952
       },
       {
         "ticker": "MSFT",
-        "weight_pct": 18.14304315394191,
-        "vol_ann_pct": 27.85777900785209,
-        "component_var_1d_usd": 1.4187369539573707,
-        "marginal_var_1d_usd_per_pp": 0.07819729810040849,
-        "risk_contribution_pct": 5.316977586226395
+        "weight_pct": 18.259842018194316,
+        "vol_ann_pct": 28.048710219907917,
+        "component_var_1d_usd": 1.4339170465373612,
+        "marginal_var_1d_usd_per_pp": 0.07852844756863667,
+        "risk_contribution_pct": 5.471515005504587
       },
       {
         "ticker": "TSM",
-        "weight_pct": 5.404900540896904,
-        "vol_ann_pct": 45.17141752399432,
-        "component_var_1d_usd": 1.3333539898729925,
-        "marginal_var_1d_usd_per_pp": 0.24669352928587507,
-        "risk_contribution_pct": 4.996989229670304
+        "weight_pct": 5.387623311812676,
+        "vol_ann_pct": 45.507791024923556,
+        "component_var_1d_usd": 1.3094161118484131,
+        "marginal_var_1d_usd_per_pp": 0.24304151126851095,
+        "risk_contribution_pct": 4.996446566925859
       },
       {
         "ticker": "CLSK",
-        "weight_pct": 2.3472064303519193,
-        "vol_ann_pct": 97.04851178104866,
-        "component_var_1d_usd": 1.2698637530734223,
-        "marginal_var_1d_usd_per_pp": 0.541010682593874,
-        "risk_contribution_pct": 4.759047893846283
+        "weight_pct": 2.2661054768758735,
+        "vol_ann_pct": 97.33447788179312,
+        "component_var_1d_usd": 1.2063677374612078,
+        "marginal_var_1d_usd_per_pp": 0.5323528625526934,
+        "risk_contribution_pct": 4.603236424042075
       },
       {
         "ticker": "META",
-        "weight_pct": 7.632893466401888,
-        "vol_ann_pct": 44.35855254336016,
-        "component_var_1d_usd": 1.1118618584774425,
-        "marginal_var_1d_usd_per_pp": 0.14566715274772063,
-        "risk_contribution_pct": 4.166906743363941
+        "weight_pct": 7.579747812335566,
+        "vol_ann_pct": 44.873713760925995,
+        "component_var_1d_usd": 1.1089843294993267,
+        "marginal_var_1d_usd_per_pp": 0.14630886896982562,
+        "risk_contribution_pct": 4.231642558666597
       },
       {
         "ticker": "AVGO",
-        "weight_pct": 3.810398958788714,
-        "vol_ann_pct": 50.502300545800935,
-        "component_var_1d_usd": 0.9902069377314333,
-        "marginal_var_1d_usd_per_pp": 0.2598696221684381,
-        "risk_contribution_pct": 3.710982560197768
+        "weight_pct": 3.8300517454898646,
+        "vol_ann_pct": 50.68253162586781,
+        "component_var_1d_usd": 0.9764492050214506,
+        "marginal_var_1d_usd_per_pp": 0.2549441286717035,
+        "risk_contribution_pct": 3.725917402467177
       },
       {
         "ticker": "NVDA",
-        "weight_pct": 5.057580536303793,
-        "vol_ann_pct": 44.09988673270841,
-        "component_var_1d_usd": 0.9437914776207448,
-        "marginal_var_1d_usd_per_pp": 0.18660928300520774,
-        "risk_contribution_pct": 3.5370320894113902
+        "weight_pct": 5.020902937460391,
+        "vol_ann_pct": 44.41956799911822,
+        "component_var_1d_usd": 0.9314000086802376,
+        "marginal_var_1d_usd_per_pp": 0.18550448401046896,
+        "risk_contribution_pct": 3.5540194852465894
       },
       {
         "ticker": "GOOG",
-        "weight_pct": 8.7379227856372,
-        "vol_ann_pct": 35.745616160700585,
-        "component_var_1d_usd": 0.6746864840941602,
-        "marginal_var_1d_usd_per_pp": 0.07721360106353466,
-        "risk_contribution_pct": 2.52851164809113
+        "weight_pct": 8.707664178191118,
+        "vol_ann_pct": 36.10577647229852,
+        "component_var_1d_usd": 0.6924834395446217,
+        "marginal_var_1d_usd_per_pp": 0.07952574024145179,
+        "risk_contribution_pct": 2.6423659162720634
       }
     ],
-    "portfolio_vol_ann_pct": 38.65420765916725,
-    "var_1d_usd": 26.68314716301611,
+    "portfolio_vol_ann_pct": 38.97478567435643,
+    "var_1d_usd": 26.2069471635329,
     "var_alpha": 0.05,
-    "diversification_ratio": 1.417045217421751,
-    "hhi": 0.10637975731698626,
-    "effective_names": 9.400284652090706,
+    "diversification_ratio": 1.4111046287611937,
+    "hhi": 0.10662133043513232,
+    "effective_names": 9.378986324020719,
     "excluded": [],
-    "sleeve_value_usd": 666.2132863070487,
-    "asof": "2026-11-20T01:51:25.538588+00:00"
+    "sleeve_value_usd": 648.9417431930542,
+    "asof": "2026-11-21T01:40:05.603136+00:00"
   },
   "stress_tests": {
     "scenarios": [
       {
         "name": "AI capex drawdown",
         "description": "hyperscalers cut datacenter capex; the whole buildout chain reprices",
-        "book_impact_usd": -152.92667710703375,
-        "book_return_pct": -18.50973214956923,
+        "book_impact_usd": -148.87042423347472,
+        "book_return_pct": -18.403500172328542,
         "bench_return_pct": -12.0,
-        "active_pct": -6.509732149569231
+        "active_pct": -6.403500172328542
       },
       {
         "name": "Rate shock +100bp",
         "description": "long rates jump; duration-heavy power and growth multiples compress",
-        "book_impact_usd": -71.613934857687,
-        "book_return_pct": -8.667910514165731,
+        "book_impact_usd": -69.71782947982788,
+        "book_return_pct": -8.618582861254986,
         "bench_return_pct": -7.000000000000001,
-        "active_pct": -1.6679105141657304
+        "active_pct": -1.6185828612549846
       },
       {
         "name": "Semis export controls",
         "description": "new China export restrictions hit the GPU supply chain",
-        "book_impact_usd": -66.70242011372184,
-        "book_return_pct": -8.073437240573142,
+        "book_impact_usd": -64.87631924777222,
+        "book_return_pct": -8.02007086769588,
         "bench_return_pct": -5.0,
-        "active_pct": -3.073437240573142
+        "active_pct": -3.02007086769588
       },
       {
         "name": "BTC crash -40%",
         "description": "bitcoin halves; HPC-pivot miners trade as leveraged BTC despite the pivot",
-        "book_impact_usd": -20.756502321066858,
-        "book_return_pct": -2.5122974329453256,
+        "book_impact_usd": -19.953629378585816,
+        "book_return_pct": -2.4666862044503546,
         "bench_return_pct": -2.0,
-        "active_pct": -0.5122974329453256
+        "active_pct": -0.4666862044503546
       },
       {
         "name": "Oil/energy spike",
         "description": "energy shock lifts power prices but squeezes miners and risk appetite",
-        "book_impact_usd": 8.642655470247266,
-        "book_return_pct": 1.0460780345297147,
+        "book_impact_usd": 8.537150300292968,
+        "book_return_pct": 1.0553704527383756,
         "bench_return_pct": -4.0,
-        "active_pct": 5.046078034529715
+        "active_pct": 5.055370452738376
       },
       {
         "name": "AGI acceleration melt-up",
         "description": "capability jump pulls forward the whole thesis (upside scenario)",
-        "book_impact_usd": 166.87158607728003,
-        "book_return_pct": 20.197577166359384,
+        "book_impact_usd": 162.48293573425292,
+        "book_return_pct": 20.086291492634757,
         "bench_return_pct": 10.0,
-        "active_pct": 10.197577166359384
+        "active_pct": 10.086291492634757
       }
     ],
-    "asof": "2026-11-20T01:51:25.538588+00:00"
+    "asof": "2026-11-21T01:40:05.603136+00:00"
   },
   "data_quality": {
     "status": "degraded",
@@ -1525,6 +1533,6 @@
     "missing_prices": [
       "BITF"
     ],
-    "last_bar": "2026-11-18"
+    "last_bar": "2026-11-19"
   }
 }
